@@ -5,8 +5,8 @@
  * ============================================================
  *  Cara pakai singkat (detail di PANDUAN.md):
  *  1. Buat Google Spreadsheet baru → Extensions → Apps Script.
- *  2. Tempel file ini ke Code.gs, buat file HTML bernama "Index"
- *     lalu tempel isi Index.html.
+ *  2. Tempel file ini ke Code.gs, buat file HTML bernama "index"
+ *     lalu tempel isi index.html.
  *  3. Jalankan fungsi setup() sekali (izinkan akses).
  *  4. Deploy → New deployment → Web app
  *       Execute as: Me | Who has access: Anyone
@@ -51,7 +51,7 @@ const DEFAULT_SETTINGS = {
 /* ---------------- ENTRY POINTS ---------------- */
 
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('Index')
+  return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('JariMath Kids — Portal')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -113,6 +113,7 @@ function login_(req) {
     const u = readTable_('Users').find(r => r.username.toLowerCase() === user.toLowerCase());
     if (u && u.passwordHash === hash_(pass)) profile = { id: u.id, nama: u.nama, username: u.username };
   } else if (role === 'murid' || role === 'ortu') {
+    lengkapiDataSiswa();
     const s = readTable_('Siswa').find(r => r.id.toUpperCase() === user.toUpperCase());
     const key = role === 'murid' ? 'pin' : 'kodeOrtu';
     if (s && String(s[key]) === pass && s.status !== 'Berhenti') profile = { id: s.id, nama: s.nama, panggilan: s.panggilan };
@@ -150,6 +151,7 @@ function hash_(s) {
 /* ---------------- DATA: ADMIN ---------------- */
 
 function bootstrap_() {
+  lengkapiDataSiswa();
   const db = {};
   ADMIN_TABLES.forEach(t => db[t] = readTable_(t));
   return { db: db, settings: getSettings_() };
@@ -290,6 +292,41 @@ function withLock_(fn) {
   try { return fn(); } finally { lock.releaseLock(); }
 }
 
+/* ---------------- INPUT LANGSUNG DI GOOGLE SHEET ----------------
+ * Admin boleh mengetik siswa langsung di sheet "Siswa" (cukup kolom nama, dst).
+ * Kolom yang kosong (id, pin, kodeOrtu, level, status, tglMulai) diisi otomatis
+ * setiap kali portal admin dibuka / ada login, atau jalankan lengkapiDataSiswa() manual.
+ * Bisa juga dipasang pemicu: Triggers → lengkapiDataSiswa → From spreadsheet → On edit.
+ */
+function lengkapiDataSiswa() {
+  const sh = sheet_('Siswa');
+  const last = sh.getLastRow();
+  if (last < 2) return 0;
+  const h = SCHEMA.Siswa;
+  const rng = sh.getRange(2, 1, last - 1, h.length);
+  const vals = rng.getDisplayValues();
+  const col = k => h.indexOf(k);
+  let max = 0;
+  vals.forEach(r => { const n = parseInt(String(r[0]).replace(/\D/g, ''), 10); if (r[0] && n > max) max = n; });
+  const today = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd');
+  const rand4 = () => String(Math.floor(1000 + Math.random() * 9000));
+  let changed = 0;
+  vals.forEach(r => {
+    if (!String(r[col('nama')]).trim()) return;
+    const before = r.join('|');
+    if (!r[col('id')]) r[col('id')] = 'JMK' + ('00' + (++max)).slice(-3);
+    if (!r[col('pin')]) r[col('pin')] = rand4();
+    if (!r[col('kodeOrtu')]) r[col('kodeOrtu')] = rand4();
+    if (!r[col('level')]) r[col('level')] = '1';
+    if (!r[col('status')]) r[col('status')] = 'Aktif';
+    if (!r[col('tglMulai')]) r[col('tglMulai')] = today;
+    if (!r[col('jk')]) r[col('jk')] = 'P';
+    if (r.join('|') !== before) changed++;
+  });
+  if (changed) rng.setNumberFormat('@').setValues(vals);
+  return changed;
+}
+
 /* ---------------- SETUP (jalankan sekali) ---------------- */
 
 function setup() {
@@ -302,15 +339,8 @@ function setup() {
   }
   if (!readTable_('Pengaturan').length) saveSettings_(DEFAULT_SETTINGS);
 
-  if (!readTable_('Siswa').length) {
-    upsertMany_('Guru', [{ id: 'G01', nama: 'Bu Risya', wa: '081234567890', status: 'Aktif', catatan: '' }]);
-    upsertMany_('Siswa', [{
-      nama: 'Contoh Siswa', panggilan: 'Contoh', jk: 'P', tglLahir: '2018-05-12', ortu: 'Ibu Contoh',
-      waOrtu: '081234567890', alamat: '-', tglMulai: Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd'),
-      level: '1', status: 'Aktif', sppNominal: '', pin: '1234', kodeOrtu: '5678', catatan: 'Data contoh — boleh dihapus'
-    }]);
-  }
-  Logger.log('Setup selesai. Login admin: admin / jarimath123. Contoh murid: JMK001 PIN 1234, kode ortu 5678');
+  lengkapiDataSiswa();
+  Logger.log('Setup selesai. Login admin: admin / jarimath123 (segera ganti). Isi data siswa di sheet Siswa atau lewat portal admin.');
 }
 
 // Reset password admin bila lupa (jalankan dari editor)
