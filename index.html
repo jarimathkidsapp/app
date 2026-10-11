@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>JariMath Kids — Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#E31183; --pink-d:#B80D69; --pink-50:#FDE8F3; --pink-100:#FBD3E8;
+  --yellow:#FFC928; --yellow-d:#B98A00; --yellow-50:#FFF6D9;
+  --green:#18A058; --green-50:#DDF7E8;
+  --blue:#2F7BEA; --blue-50:#DFEBFF;
+  --purple:#7A4BD8; --purple-50:#EEE6FF;
+  --orange:#FF8A3D; --orange-50:#FFEBDD;
+  --red:#E5484D; --red-50:#FDECEC;
+  --ink:#2D2A4A; --ink-2:#5A5775; --muted:#8E8BA6; --line:#F0E3EC;
+  --bg:#FFF7FB; --card:#FFFFFF;
+  --r:18px; --r-sm:12px;
+  --shadow:0 2px 0 rgba(45,42,74,.04), 0 8px 24px -12px rgba(227,17,131,.18);
+  --font-h:'Fredoka', 'Nunito', system-ui, sans-serif;
+  --font-b:'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{min-height:100vh}
+h1,h2,h3,h4{font-family:var(--font-h);font-weight:600;line-height:1.2;letter-spacing:.1px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--pink);text-decoration:none}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.nowrap{white-space:nowrap}
+.num{font-variant-numeric:tabular-nums}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:1fr}}
+@media(max-width:560px){.g2.keep{grid-template-columns:repeat(2,minmax(0,1fr))}.g2:not(.keep){grid-template-columns:1fr}}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;border-radius:999px;font-weight:800;font-size:14px;background:var(--pink);color:#fff;box-shadow:0 3px 0 var(--pink-d);transition:transform .08s, filter .15s;white-space:nowrap}
+.btn:hover{filter:brightness(1.05)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--pink-d)}
+.btn svg{width:17px;height:17px}
+.btn.sm{padding:6px 12px;font-size:13px;box-shadow:0 2px 0 var(--pink-d)}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line),0 2px 0 var(--line)}
+.btn.yellow{background:var(--yellow);color:var(--ink);box-shadow:0 3px 0 var(--yellow-d)}
+.btn.green{background:var(--green);box-shadow:0 3px 0 #0E7A41}
+.btn.wa{background:#25D366;box-shadow:0 3px 0 #179C4A}
+.btn.red{background:var(--red);box-shadow:0 3px 0 #B4282D}
+.btn.block{width:100%}
+.btn:disabled{opacity:.55;pointer-events:none}
+.icon-btn{width:36px;height:36px;border-radius:12px;display:inline-grid;place-items:center;color:var(--ink-2)}
+.icon-btn:hover{background:var(--pink-50);color:var(--pink)}
+.icon-btn svg{width:20px;height:20px}
+
+/* ---------- forms ---------- */
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:13px;font-weight:800;color:var(--ink-2)}
+.input,select.input,textarea.input{width:100%;padding:10px 13px;border-radius:12px;border:1.5px solid var(--line);background:#fff;outline:none;transition:border-color .15s, box-shadow .15s}
+.input:focus{border-color:var(--pink);box-shadow:0 0 0 4px var(--pink-50)}
+textarea.input{min-height:84px;resize:vertical}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form-grid .full{grid-column:1/-1}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr}}
+
+/* ---------- cards ---------- */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid #F8EAF2;padding:18px}
+.card h3{font-size:18px;margin-bottom:10px}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.card-head h3{margin:0}
+.stat{border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.stat .lbl{font-size:13px;font-weight:700;color:var(--ink-2)}
+.stat .val{font-family:var(--font-h);font-size:26px;font-weight:600;line-height:1.1}
+.stat .sub{font-size:12px;color:var(--ink-2)}
+.bg-pink{background:var(--pink-50)} .bg-yellow{background:var(--yellow-50)} .bg-green{background:var(--green-50)} .bg-blue{background:var(--blue-50)} .bg-purple{background:var(--purple-50)} .bg-orange{background:var(--orange-50)} .bg-red{background:var(--red-50)}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+.b-green{background:var(--green-50);color:#0E7A41}
+.b-red{background:var(--red-50);color:#B4282D}
+.b-yellow{background:var(--yellow-50);color:#8A6500}
+.b-blue{background:var(--blue-50);color:#1D5DBF}
+.b-pink{background:var(--pink-50);color:var(--pink-d)}
+.b-purple{background:var(--purple-50);color:#5B32B0}
+.b-gray{background:#F1EFF5;color:var(--ink-2)}
+
+/* ---------- table ---------- */
+.table-wrap{overflow-x:auto;margin:0 -18px;padding:0 18px}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+.t th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:800;padding:8px 10px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+.t td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.t tr:last-child td{border-bottom:0}
+.t tr.unpaid td{background:#FFF4F4}
+.t tr.unpaid td:first-child{box-shadow:inset 4px 0 0 var(--red)}
+.t .c{text-align:center}
+.t .r{text-align:right}
+
+/* ---------- tabs / chips ---------- */
+.tabs{display:flex;gap:6px;background:#fff;padding:5px;border-radius:999px;box-shadow:var(--shadow);overflow-x:auto;max-width:100%;scrollbar-width:none}
+.tabs button{padding:8px 16px;border-radius:999px;font-weight:800;font-size:14px;color:var(--ink-2);white-space:nowrap}
+.tabs button.on{background:var(--pink);color:#fff}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 13px;border-radius:999px;font-weight:800;font-size:13px;background:#fff;border:1.5px solid var(--line);color:var(--ink-2)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* ---------- login ---------- */
+.login-wrap{min-height:100vh;display:grid;place-items:center;padding:24px 16px;background:
+  radial-gradient(circle at 12% 18%, var(--yellow-50) 0 120px, transparent 121px),
+  radial-gradient(circle at 88% 82%, var(--blue-50) 0 160px, transparent 161px),
+  radial-gradient(circle at 90% 10%, var(--pink-100) 0 90px, transparent 91px), var(--bg)}
+.login-card{width:100%;max-width:410px;background:#fff;border-radius:28px;padding:28px 24px;box-shadow:0 20px 50px -24px rgba(227,17,131,.45);text-align:center}
+.login-card .logo{width:132px;height:132px;margin:-4px auto 8px;display:block}
+.login-card h1{font-size:24px}
+.login-card .tabs{margin:18px 0 16px;justify-content:center}
+.login-card .tabs button{flex:1}
+.login-card form{display:flex;flex-direction:column;gap:12px;text-align:left}
+.login-hint{font-size:13px;color:var(--muted);text-align:center;margin-top:12px}
+.demo-box{margin-top:16px;background:var(--yellow-50);border-radius:14px;padding:10px 12px;font-size:12.5px;text-align:left;color:#6B5200}
+.demo-box b{color:var(--ink)}
+
+/* ---------- app shell ---------- */
+.shell{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+.side{background:#fff;border-right:1px solid var(--line);padding:18px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 6px 14px}
+.brand img{width:46px;height:46px}
+.brand b{font-family:var(--font-h);font-size:18px;display:block;line-height:1.1;color:var(--pink)}
+.brand span{font-size:12px;color:var(--muted)}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:14px;font-weight:700;color:var(--ink-2);text-align:left;width:100%}
+.nav-item svg{width:20px;height:20px;flex-shrink:0}
+.nav-item:hover{background:var(--pink-50);color:var(--pink)}
+.nav-item.on{background:var(--pink);color:#fff}
+.nav-item .cnt{margin-left:auto;background:var(--red);color:#fff;font-size:11px;padding:1px 7px;border-radius:999px}
+.nav-item.on .cnt{background:#fff;color:var(--red)}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:10px;padding:14px 26px;position:sticky;top:0;z-index:20;background:rgba(255,247,251,.9);backdrop-filter:blur(8px)}
+.topbar h2{font-size:22px}
+.topbar .menu-btn{display:none}
+.content{padding:6px 26px 40px;display:flex;flex-direction:column;gap:16px;max-width:1240px;width:100%}
+.user-pill{display:flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:5px 6px 5px 14px;box-shadow:var(--shadow);font-weight:700;font-size:13px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;font-family:var(--font-h);font-weight:700;color:var(--ink);font-size:14px;flex-shrink:0}
+.mode-flag{position:fixed;bottom:12px;right:12px;pointer-events:none;z-index:80;background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;opacity:.9}
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .side{position:fixed;left:0;top:0;bottom:0;width:270px;z-index:60;transform:translateX(-105%);transition:transform .22s;box-shadow:0 0 40px rgba(0,0,0,.2)}
+  .side.open{transform:none}
+  .scrim{position:fixed;inset:0;background:rgba(45,42,74,.35);z-index:55}
+  .topbar{padding:12px 16px}
+  .topbar .menu-btn{display:inline-grid}
+  .topbar h2{font-size:19px}
+  .user-pill .nm{display:none}
+  .content{padding:4px 16px 40px}
+}
+
+/* ---------- home hero + tiles (seperti brief) ---------- */
+.hero{background:var(--pink-50);border-radius:22px;padding:20px;display:flex;gap:16px;align-items:center;position:relative;overflow:hidden}
+.hero img{width:84px;height:84px;flex-shrink:0}
+.hero h2{color:var(--pink-d);font-size:23px}
+.hero p{color:var(--pink-d);opacity:.85}
+.hero:after{content:"";position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:var(--pink-100);opacity:.6}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tile{border-radius:18px;padding:18px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:800;color:var(--ink);text-align:center;transition:transform .12s}
+.tile:hover{transform:translateY(-2px)}
+.tile svg{width:30px;height:30px;color:var(--pink-d)}
+@media(max-width:560px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.tile{padding:13px 6px;font-size:12.5px;line-height:1.25}.tile svg{width:25px;height:25px}.hero{padding:16px;gap:12px}.hero img{width:56px;height:56px}.hero h2{font-size:19px}.hero p{font-size:13.5px}}
+.tiles.desktop-hide{display:none}
+@media(max-width:900px){.tiles.desktop-hide{display:grid}}
+
+/* list items */
+.li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:0}
+.li .meta{min-width:0;flex:1}
+.li .meta b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{padding:26px 10px;text-align:center;color:var(--muted);font-weight:600}
+
+/* status segmented (absensi) */
+.seg{display:inline-flex;background:#F6F1F5;border-radius:12px;padding:3px;gap:2px}
+.seg button{min-width:38px;padding:6px 9px;border-radius:9px;font-weight:800;font-size:13px;color:var(--ink-2)}
+.seg button.on.H{background:var(--green);color:#fff}
+.seg button.on.I{background:var(--blue);color:#fff}
+.seg button.on.S{background:var(--orange);color:#fff}
+.seg button.on.A{background:var(--red);color:#fff}
+
+/* jadwal */
+.days{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:900px){.days{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.days{grid-template-columns:1fr}}
+.day{border-radius:18px;padding:14px;background:#fff;box-shadow:var(--shadow)}
+.day h4{font-size:16px;padding:6px 12px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center}
+.sess{border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.sess:hover{border-color:var(--pink-100)}
+.sess .time{font-weight:800;font-size:13px}
+
+/* rekap grid */
+.cell-ok{color:#0E7A41;font-weight:800}
+.cell-no{color:#B4282D;font-weight:800;background:var(--red-50)}
+.cell-na{color:#C9C5D6}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(45,42,74,.45);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:40px 14px;overflow-y:auto}
+.modal{background:#fff;border-radius:22px;width:100%;max-width:560px;box-shadow:0 30px 60px -20px rgba(0,0,0,.35);animation:pop .18s ease-out}
+.modal.wide{max-width:760px}
+.modal-h{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.modal-h h3{font-size:19px;flex:1}
+.modal-b{padding:18px}
+.modal-f{display:flex;gap:8px;justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--line);flex-wrap:wrap}
+@keyframes pop{from{transform:translateY(10px) scale(.98);opacity:0}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-weight:700;z-index:200;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:90vw;text-align:center}
+.toast.err{background:var(--red)}
+.loading{position:fixed;inset:0;display:grid;place-items:center;background:rgba(255,247,251,.6);z-index:150}
+.spin{width:44px;height:44px;border-radius:50%;border:5px solid var(--pink-100);border-top-color:var(--pink);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* invoice preview */
+.inv{font-family:var(--font-b);color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:22px;position:relative;overflow:hidden}
+.inv-h{display:flex;gap:12px;align-items:center;border-bottom:2px dashed var(--pink-100);padding-bottom:14px;margin-bottom:14px}
+.inv-h img{width:64px;height:64px}
+.inv-h h2{font-size:20px;color:var(--pink)}
+.inv table{width:100%;border-collapse:collapse;font-size:14px}
+.inv td{padding:6px 0;vertical-align:top}
+.inv .tot{font-family:var(--font-h);font-size:24px;color:var(--pink)}
+.stamp{position:absolute;right:18px;top:92px;transform:rotate(-12deg);border:3px solid;border-radius:10px;padding:4px 12px;font-family:var(--font-h);font-weight:700;font-size:20px;letter-spacing:1px;opacity:.85}
+.stamp.paid{color:var(--green);border-color:var(--green)}
+.stamp.unpaid{color:var(--red);border-color:var(--red)}
+
+/* ---------- murid ---------- */
+.kid-top{display:flex;align-items:center;gap:10px;padding:14px 16px;max-width:880px;margin:0 auto;width:100%}
+.kid-top img{width:48px;height:48px}
+.kid-wrap{max-width:880px;margin:0 auto;padding:0 16px 40px;display:flex;flex-direction:column;gap:16px;width:100%}
+.star-pill{display:inline-flex;align-items:center;gap:6px;background:var(--yellow);border-radius:999px;padding:6px 14px;font-family:var(--font-h);font-weight:700;font-size:18px;box-shadow:0 3px 0 var(--yellow-d)}
+.kid-hero{border-radius:26px;padding:22px;background:linear-gradient(135deg,var(--pink) 0%,#F0479F 100%);color:#fff;display:flex;gap:16px;align-items:center;position:relative;overflow:hidden}
+.kid-hero h2{font-size:26px}
+.kid-hero .lv{display:inline-block;margin-top:8px;background:rgba(255,255,255,.22);padding:4px 12px;border-radius:999px;font-weight:800;font-size:13px}
+.kid-hero .big-emoji{font-size:60px;line-height:1}
+.levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media(max-width:560px){.levels{grid-template-columns:1fr}}
+.level-card{border-radius:22px;padding:18px;text-align:left;display:flex;gap:14px;align-items:center;transition:transform .12s;position:relative;border:2.5px solid transparent}
+.level-card:hover{transform:translateY(-2px)}
+.level-card .n{width:62px;height:62px;border-radius:18px;display:grid;place-items:center;font-family:var(--font-h);font-size:30px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+.level-card h3{font-size:18px}
+.level-card p{font-size:13px;color:var(--ink-2)}
+.level-card.locked{opacity:.55;filter:grayscale(.6);cursor:not-allowed}
+.level-card .lock{position:absolute;right:14px;top:12px;font-size:18px}
+.quiz{background:#fff;border-radius:26px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;max-width:460px;margin:0 auto;width:100%}
+.dots{display:flex;gap:5px}
+.dots i{flex:1;height:8px;border-radius:9px;background:#F1E8EE}
+.dots i.ok{background:var(--green)} .dots i.no{background:var(--red)} .dots i.cur{background:var(--yellow)}
+.q-box{text-align:center;padding:18px 8px;border-radius:20px;background:var(--yellow-50)}
+.q-text{font-family:var(--font-h);font-size:46px;font-weight:700;color:var(--ink);letter-spacing:1px}
+.q-ans{margin-top:8px;font-family:var(--font-h);font-size:38px;font-weight:700;min-height:52px;color:var(--pink);background:#fff;border-radius:14px;border:2.5px dashed var(--pink-100);padding:2px 10px}
+.q-box.right{background:var(--green-50)} .q-box.wrong{background:var(--red-50);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-4px)}}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.keypad button{height:58px;border-radius:16px;background:#fff;border:2px solid var(--line);font-family:var(--font-h);font-size:26px;font-weight:600;box-shadow:0 3px 0 var(--line)}
+.keypad button:active{transform:translateY(2px);box-shadow:none}
+.keypad .ok{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 3px 0 #0E7A41}
+.keypad .del{background:var(--pink-50);color:var(--pink-d)}
+.result{text-align:center;padding:10px}
+.result .stars{font-size:54px;letter-spacing:6px;margin:6px 0}
+.result .stars span{display:inline-block;animation:starpop .5s both}
+.result .stars span.off{filter:grayscale(1);opacity:.25}
+@keyframes starpop{from{transform:scale(0) rotate(-60deg)}70%{transform:scale(1.3)}}
+.score-big{font-family:var(--font-h);font-size:64px;color:var(--pink);font-weight:700;line-height:1}
+
+/* print */
+@media print{
+  body *{visibility:hidden}
+  .print-area,.print-area *{visibility:visible}
+  .print-area{position:absolute;left:0;top:0;width:100%}
+}
+</style>
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAABIFBMVEXg29tcK2aeJ3iWnK/uA25lcIomM1r86KL40Vrshrs2R2dLV3X99vvylMjwF5zYD3rpT6CutsfgBHL1AAn5wR33vRmzK4HkIInlA3q0ydh1hpr/Af22CWubX5T31uqpABHpEoPvpODtYKflGIXup9D7dvXiX6ZdptT3qbF/A3/2c3npYqrwqNEVesEvish1AA/nYBz7e8GxY7H1l2WvD6/1zuIMdL3//wDnhrr29q65dHQ7AAAA/wAA//9/f/9////rfkjqiL7//38AAP9/fwB//3+NRH+/lKqqqv+q/1Wq///nG4cAAAD8+/zmI4r5xSvjCX3mNpD16PHlDYD41+rpV6XlRpoqNVvrd7XqZq3yp8/vl8fzt9jSJIX2yeMwK1i9UOP8AAAAYHRSTlP8////Df/////+//8C+Q/3+v9hBf///+qc//8BBP+kDKQIE11kA1z/BwIDn6L//wT//AP/A3L/AWYDAwQBAQIC/6ICAQIC/wwDAwP+AP7+//7+/v7+/v7//v7+/v7//v/EsONDAAAjp0lEQVR42tV9B3vbOLMuRFKSKVktsiXLJS6J0zZl27f7lVPuOfec2yjAJFjEJur//4s7A5AUKVG2YsmOP+7zbBJbBS+mvTMYAGT6JM/w04cPh6vP9eHhhw+fhk/zjWTvn3j2qxj1pl8DnuvrX89eOJDhB5h28bdv3Zvrt3+B53X2/OUtPDfatwzOh+ELBXL44f/Iv3Tfvn39mhBa+RDy+vXbd91/iFdeH356YUAOP0hd6n54+1og4E4c+YHrWRZLH8vy3MCPYocLPIDm/JsQzYePLwXI8BpR/ANU6bWAEPqeZRimadq2UXpsG35oGJbrhwiHv/78rnuJWP4+fAFAPqJRfLsRknBi32MAYQXA6gN4DObpsQPv+PzXG8Ryff6DgXy6OUSjeA0THOuexMCY8cCDrwA0zOsQgUWDT7q5/XFAhreA4vIdyiIMQBI2jPBBEGUwhuXHiOUdiOVfd3LKjwfyCc1b+wwo4oCh7m8PIscC7zBt5ieUJz+hWH7Vnh2Idg0SefeZU0e3YGJ3euyeFcEH/ccbsPnr358VyPAadeozCMM1dkQhH5MFhPLOO4Dy6ePzAQHbuHzXAcvwQBhsH0DAwox+iFAup4c3zwTkVzCOdx1OIwvN29jTwyDMWAjlzeX0v2+fAQja+BuQBsAw9gdDQjEElP4rkIr21EBA7NpPnIaWaTzJY3oxdfoAozt8SiAaGkdMSd/crzBKUAKHhlfD6eHl0wEBHvGqQ3lg2E8GQ5i9jvr1nUL5DiBDEMdPCQ3ZE4ojhWLFNP4JYHx8CiC3QhyO+8QwUrMPOPVBKOfDfQMZ3oI4OiAO23iWx2axsJQzbb9AtFtwVpQ/hzjysOKD+3o1/XC+TyDgrV5FlDD7mWCkntgB9bqc/r4/IN+m3646VDeM58QBX8ZCUC9tqu0LiDYdQgx8PrUq2LxPk7G2lR/eAkh3qvUpt2zjBzwmfLP3aqqd7Q5kqE1f+c9tHgUklkPdV9OutiuQYRejR2gYPwYHGgqhAchE2w2IdoPuqvPDcIgvDql/cv6QyZOHMsFX8DH2j8MhkMBUApLzxwM5uxU4TOMHPzYi6d6fo9wH5Kz7MnCAyeuARNM+Pg7IUNjHS8ABSCL6y0n3XHsMEOmvXgYOoV3ByfQeJOSeOAjxQ38hOAz0Xe59kZFs5iWvAhq9GBzgu2IKZFj7XiBA1VwaGy/pYQ63NiMhG3GMuWP8yPhREeNhRBu5cDWQj5+GV4D/JeEAJLZH43EXnNDWQOC1JyHtmy8KByAxAwgnh9Wui2wwdB+IyQvDIcOJezLdGohIQELTeIlPssngSdVi+XDsOC8SBjMsHo+1Pz9uBeTv05OIek9k6IyNFIXtYPABcJXDj2dbAIGI7gIz2TeO+VxRavAsZq1GTZnvwlUq4+IakDMNIgjZtyAUANBotet1VZ1QctpqzB+tXMxJjO46ErKWov9f8Lz7jiBKo65O0pYIJ0wob9fYo5XLBR98s0a6yHMo1nymUk5C3Q/6HvZ09B0yU3bxwRXKtQLk439qYxDdnp9am0bzZVOK1fNpvba1ba1pIeMxUJXuvUBuMAfxtnVAa4ZoY7vJegGsdko9BLB8HHWxlZXMwbYWtfnqUhDkJquJL1lZAtEsGtlrI86f4qhN+cjWGZhpz3PdwA8C1zLMclWyplKvCIMFVN3KSEazlkrU1tprY85WlasM5Gx6Aq8pjL8w1+m4zeWwg8DXO1EYE8fhXLZjcfEXHgaGXVYtvZeqFcDwCSUtZSvbqlMe0zWDAvbYGd9qw41AwNL7S0vPx502W8GwozCM48RxeNZHxp0kieMwisCQXdGeBS8NooQmrl2cWJXqnufHJITfs5hWTHKls2txMu6B+Fb1EOx9lamQUgg56yUZNzFZgMNOYNiF+XYSAsPu5MNmS8QmWkiqc4ZHsBq2FElLhXdTQh0EkkwatW0shIFt9ZnFQroiP0xNQrtbWgQiZYGAGQmB2FbI0ecn68Mu28aaFaWmZOpFJ85qs/apWl9MEgAydyazTTgg/I9KQPBr9VUgQOh12i/T4AIQTctcLzIarlssHbVtZ5NdHno2OxarCMBmma9JekJiCaSgKiUPoixarRloHWPgdeesVqcBs3oRXbcocMF2Kb6TlXKDi9MIOKJ7mmXmo3nhy72EEstw1322E698xKghbKQABBgkAlRAEHNhEyqng1ZNQUoGbrfW4vGceRXhk5k+iOT/VQLR/ksbpxbiYflkozUqi8Witvxkh4e0Y9G1KAreXjIdVBcmiQoXxu4MUiAj0Lj66Wm9sWg0FooxX6g01Clpt+qn6mQyqM/ASZCQ8nqFSUmRdCuACAuRvia5r+xQA95Ub2VzBJ4w6tMoxoW51a+iOopXWTRAXUYVQJRFfSJ7aFVC6g1lNCNxr9en6Ft4EnNanzXqhKqN2agi7dWRqHxbBzL8U7vqOEK9vdTiN/A/Fb+6nSGx8FtDEMh6QE8wy1RmKufw8lEOxOISSA0+iet9zwsITcAlzzDcgMEFkR541pzNQaVmdfB1p5XEjNFw3B2erQE5/xeIIQF2/JgdvtnJj0FvxSTOMnG7SRw4QEHWjMQOE+l54sihdRh7DkTEBUBIo7FwcnOPzSNab7Spz9JOYRE4ab1N4wAxziu5o/Vmae5kaeonoQRgJmSzQDDYikdt5NMEbiXyKS5rrXwTCHi+mDjz3tjhrVoZCAZJPyNgIIcxuADhpAoPVwfcYr2YVorEovr4dk0i4Mos2pFuhkebgYwWahoc2+k0YbmJBzSOaX91LQAmZj5Dl8tcelpjJSDIiA0BQjIXFhIA0s+hMdbzqEoi5oFk2lVc2Q658SavcpGlQDqpl2G8cw+QRgoERFLLy8s+UOa1PF8AGUkgY67WkHFEKRAGHoqPhQLpsWDGLKIgbPlXxsbI5TipcxAa6+MsVJi7i7WhYRmINuyOndhOHZv+kK1LkYh8FX2DY0AAXasUC9WSsYP1UyB6DkQAREFQmqBMcN5TIH094YJ9ttuoa8zjp9XUDEbcHZ6XgIjEMPNVq6o1V2rKaLwKJLcSFoHT9omevsfz0kzFRGPHAc+lRNJALYEoMjjC8E/rNEREfVoXQOBHnAxUCC+tRp26m4GAV6LWVRZKSNZSlpk6Ag1LQGqNxqzRSEPgaFHPd1DMUt0yBXG0s5o59aSpmWGMQCaEyUyqNiOCM1qYjGRAYjJrXFDQOAb4JJCItzHkQsCvCaMBA6vMJxmYe6f3Ia2gkmXxPRu+mcRFILVGSx2oEGVrY+G12vlekHZaC2GF/yMQ0GthjDFwlPkCHI/QoDowYBQIZFUwLlA5VK2xozaynztqnQOQeQiMhM1Rqin7DTYlxiZE7jepSEgxqjMpsTgpBLd5o0WkIjUQyTyNI+JHVV7RczC7ElqKARHjiNBzAlYkTB2FAHRkNnBQOg5XCRWWM08mUiJxRo5ZDqTSa6WEa9o9y4GcaTegWfmvQ6dcyUk1qSWQgILgP+rtdr0+W/t8K93II4A4IrK3xNQzK4iEgTBP5ElM5vHMdaj0WqhSqhh3knHK7DUokWrvwyBTvJFBkUgL0ZiTperMjHilm0IkkliAeNp14Eet2nhFaz3Mn6hvLZ0GMkGfFeMFbdVk+iuMBH8hI4fLBwJIzikziVh8U4bfI0mmWwLIJfosNweiFylKLhFA0gCdwH+jOggjWWdzbt8THVHLeKQsCJ/nARuck0xcEaAUkZX9DzJRDIjo1IpA0p9UQUHdevPvS4mc/f0komypeWUgS+seNFrzUcHaTxvKekXIiGlQZL/odUF70mmXZEV88IzwLJAzLw0p4G2ttMKCmQp6LU+qllJZMLboL1c3ubGjz0rCwrpQcdFtXJvlkQN4XU1Jjb8c3IvFLitIJzRNdkeNU9wPIKig74DhzrNEnjtjUVxhgeP32DzhoIRgQyJqKDOwwRYNe8Y8Ae9Qa9VbC6U6JgojIdJErGVnABZXvcJqlZKLQG2rgKQ2GxQiSVXybWezJSOsAlFIxQ1YuOONZBQN7b1NeRwFLrAbSnU/oXVC5nOdYmFYmCZpqzQJHcxL2uD11PWMF+yZSSNBIGf/8sovlhe9zBNngUSKpI4V3PastZQQb99XwvVE3sxqMLXtRUudEIJJn4Q+r2Em22hPiHDmamsCGOtofg549RFY0CltHhAI9gRzrlqbkINmBZ2HSXevcomcQVh3SopXSqyUmVAmtS38LoT5ekHVHgRSaw2EdTVmkIVnKfK80YYYC15wMcO1hvYMcl74H6jTYHKKTh0MqHl8dEd4C95YG9VUenB83KyIJ+CAezfIHAHIcKpJl7/8pb/CUeqYjmZRsNHm9xhJcbJAQ9E5HcBkgquej7J6NJNRlYC5pNUHXMcCYx7VECsTpbnm0d3RAfgT/MlsQO7u7uBf619HYqMLokAgXWkirJDXl+nvvGjvFNQkt/ZByUhYqXAOQMBnjMTUwogGBS0czSb0AMYlQ3ixHgQfITIJCKPNYxy6WlcHp7PZpAlA7sh66VsaiSaAiDJQ0bzX6G+qXFlcXKjLvy+XnuZYwylUV6TzwxEd3eHcLlPKObjVg+M7UJUNFWClMWunQKTgF0QCGawaCS69A0s5F0CA+QKsYsBZob+pci2jSZWRKA2I9u3Z0mhsDEfZ1N4dNSFtH2V+l6CmwDCrqMcYeNgp+AAx9IODg7s7sI3BJiBYKekdng8ByPCj1ktKVSk7p7+Z1MvKpc5UeEjJSHABANxYgX5JgjCX6n2Hw6lnVaABKNYKEDYXRiK+EGvXzQP5riMJYCBmgwwW4/VWm8i+AWEQNBGDl0SwpL/5ok1RuUh91lYH8p+TWSN1p/L3k1lOv0xZXEI1OsqRKIhDlbN9d5ensLie02qhR66B0SltfnB8V3hyIGptPp+XhWindIugiZRt3cjpL4v8deUirfrSYLJIklFL0lgCiZx0aaB5lI4HBDYfYYRIB0hTVqVAmIF4QVSgou3FqPAWlAm6XWnsoACiyll0MEhx0doFELccAdO5xFQyZ11SuSAFHdTV4kZ7VejSPMsbJwXVChMJhOSjggC3gFc2lzONygYhU4Vw2Gw2JYGbKYsJySVyAGFRnaWmD18/GZQWtzEnsU5SICd+uaMJWaPd54nOaZj/HJgKzNYCwlpbLZweIBjxkusPCkCkghaBgEzaBRx3TTJDpgJaCSZxdHR818SQU0eyKE3kQMTg01kj92EgN7DEpRdGQoW1lCEZatJpFdUOHCe4NXz0PFecg0cCnw7yF7Xlpd/CodfadK1sZxNiityYLEeOA2umE30H/pfAyxFHZhJHgIaAes5SM4IwjGG/lrq+HN1ymR4Td3/84UwjZ98Oex1nNSZbNgtiHFlsZUYyaw9ya1+WUkAGrdEcqAVPYS0jg/R9c9CTu3wQd80UFYrpqMlbigj9R7mDujs+oG0lD+VIt5Xch2eOjBTXGRiPIEs8J90pVrTMdXJhymwvLdaBZhUUSi0gacN3IWMixfLjMhrNF9L/NptFR9SkGRClRdPfpFCFU4aUKuUkqT8uvvuoHIAkkyfamvfN6G9EuedHVqkEsUQyWJp7G8ipXM4lrdoqPwAgVA794KiAg0ulB3s4Te2hmSkdjn4JBCPkChDh7uYF/2uD/0UgazVSSX8jGuULhUqB8kodaqcrG+0W2D+pIJHppzJQHTnObOYFFxyQIznQmvz1XZOrVHoFdMpFICWJHBykXkIp1kokkFcWX2k+kfSXuUveUigwZjnVIKXCdSxYVdD6LNOVQI6aQJ9z5SENqW8w5hTngVBXIZMmcMkUHgoHnsxGhBMDwR6jThYCCdJGItbW3XL/IpNaYZdqKTD5WDrJTUPFcauiP6AQHueryQCTugMeCqBL7SKk3ZADBfKU4eTthqRgALmlZEDUBdJ8JfV84DKFZzhCh2AUaiWvhI1APOyvLDfJ9KRcggDvC5M/y8I6ADldJiYVqW+anjEZFHASZ5geHSEHTBUK0CGVPpBA4JMRqJjuWgZ00aqf1pHGS4rSaKdA8tojRsTx1fSSSBJftWhWJvJt4WC52pZBRG1ACrp6nk4pz5IJYgZETDmGB4jfp4u5FBMOqCG5mAh2B7lPqmWGJVJhdZECmcyyVy+B2ILIC4lAkF+pe8Vxb6VJp7EsnSzqA8hwVDrgq0DqjVERSL8IRIYHFeMyGGqtnQ5IXaTE6gCDe+aTMl92ALgPJI0/vhMJjIz5BSAibT85RCAnv6wCscNkVSD14ry3Gm216oCjQmcGUAcukrUiEKYsZm1R1ck4MRjJLA2IR5l3xoCfAgXGKF5FhI0AkIaaSXIJBEz86n8PiViqYhVLNNXLOyJYDKqPahL8JGuIMF1J4LDokwERa+6Cu6ZA0EiwmFyMEXeiyACam0eOIww70g3MBE0oGrvQ4asP02og+sq6rrKMf6BALV595FQbgaQpjCzzpUFA5LW8mNcWgCg1yKNSrTo6QOd6gN6gnocdfJUqve5koUrHVvwwyBGvrquB2D5lmyQC1FOlGwQC4ma+K3aKLwuvSoMTyFjLvUqSmAjWNGLI7AWJxKh5ANEC0OFapcgSBTC1hSEGY01dIiLbARHdFyVjb6RS4GpjNqAbBAJGDCkMdSK3WAqfL04FeynV8mQB7oCIdtPRoi5e0YTMg1B0Bw1clMckBbMUbFOTE0laszZOQLM0K5uB4HqpV44swH0hTT9tz2b1DUeZpSmWlwjO7BnLxQmklKdqq7YqY46VLTGgEUaLwYRM6mJ1rCWcH6SN+DNCJqetGmZDkD/URjOYAFLMFu5XLW811s8bjQX8V1c3wciTXtPSAUtoF5aL5qIIx1Zbc5DcpG4OX7HANkxFqS1q2Q/Fz7BLSJTuMMKLfgkyqJekuwSy5n7Xao3CARPC6eZHBsMo6Xim6eqWUVr3WjuuqqeMlFqxtTzt0MJyCiuW67A8yYqfoQC02qjY0Ixe62ZYGRArQrtRa5F7YKQCYQ781fENU6xEbu74UrDWwNVH9ZXPlVIdReS6VyIgVlAUM1rrqymsS28WiGFFCAUjSGFtWBmNLi6U4ndfcNfzPOdiD3vkEQjWGiVpXDFtFNdaW3mtoW7GQdL6FsjCDbmIIHm5cjTAUs9A6cGT5tkXxGdW4FzsYx8HcC0gjUIiazQeazmYtq90ocw2K1eeiDDDNi1L9IHKvU2sN2geHSDhGwwGFymF611Qz6UXvb0A8bmV5iMWX280Y46zes6RUqvnjbP30F5WXvZCIMeCEwIDJJkMFNJ3J8o+9kTkiRVIpLKLxnKozsqN7gzbeUTjeNqCnfUyk1bJH4J7YQUrGwE/OsA4dnzcVHssB0LA94x7Sm9XINjtlOXslVtZI85j37VEM6xs9rWz1lm74FcB21gZrW1X4csW+xEAIUC4gHuMChKBfygXEP+U3ZCYsviblYMqhGxanYSnfePYx+yLMz2FOxed8mu9wAWRmHrBpSMQ4IWQ4Ck9RUpAAFGUAZm8n0x2RJKWg86G16sFumUTssG8tCM+WfaVO6IbvoOwPNGdXVxxysnaskYpgECS2wTHdUGIMHEBpNaZfP3jjy+TTN8eqVs8GoM0RMk05Bs3iKQN5LZs9e+7AhcuNPO8W77Yzi86niCalBochWodH/AL84L89hsavA1AgoFKvnydTL6+JzuIBDf0+eNrkAgWsX/ZuC13ZddIuvnClrjEfhFgVoGdW0bk8ASER31jBcgBGrp9QX7+uXnRUy4uUCLk/ZcJJV+/grGwx3vfvtgsela1rLD1I3fwhE5KhmzwdGEEeueXD68aYVXhAA0dJPI/CKBwYsfz6OTLe/r+i5DI44EslxW6aws93/lJWcSA5BZiT75ZZgXIHRjH+AIyjEGb670eYy4AGQCQL5OBslMYoUwu9HybdteKv9/l/tIsDKYmZsbaDqYUCNp6bwQC+Y0QvecnPgL54+uEQMpxsQfvi0CGN70kefwWY1GpEKewRBs66kfk6K6JuqWQ337+mfCeT1TuCRv58n5AdwwkTijaatLlaYc9Xk0lO4yxLaf6M1AikGqDbl1Q/WeS9GIVvRapQxT5+uUr/Jzt4LSo3/vP4bC6YeC7HtFYZDnc3ShUAaSJutVTmwgkVGUcwVXJ9192cb9pw4CWtnDsYu3Aoi1h5ptnAoEQKnRr0Py5SZnrSNWavCcqef+ejHa39ayphj96Hz5WSwJh5pvzQQRCDo4JpPy//azTqNcPXdaP4q9/DBzy9f0uccSIsanmd9nmdDjshY/f1upxZ6OZp3ktxfot6hYHYwckodWzrF6v//Xr+8n7P3aL7LxjZm1O2K+1Xn/4DiSijrU59F6AMI6PhW4Nmk39t6aqcofHUUInX7/8ASZyMX60QOTitJb3NOIemMfnz/cer4557QEkVYSASCaqOgAODBTlQlUv/heQ38mE7JIo4qadN9iulTVnojc2nujpqYR0VJVAKGkSJcukej0b0xH1YrfMKonTM1/STuyrDQR4P0ggCVEGWMk+hijOjELjUVaPeOxjiU7As2UndkVJaL/PWBVl3BVaxRjbKW3H1aqrw2UDc7pE/aRIlIuBWqpu7eMxY6fUUq792b3qcONpn96ualTlSSAmdeUpe2S5u9Uz/smedB308qy0EYbdt9fthT5Ss84LG2GG2oeTJ9etvQtENgadaWubxVz7n0okolUg39SeARnuQhx/1JMUzqwpbqh8aUecPVw/CU7yg0FLW1z1rcydPXTVCNtV97c09RB41nAVyPRQu4q3PlTr/lt4dmRt277dEkHkf67vnhZ7Q7d4v2dbQXDPtGGf14PRkW0+t93dLqOwxc7839e2gZ/9qY0TsoWrCCl2bRK2nDv4wwq9VFTM9qlrLHdZ5kfsltDpuCkx/5Fpp8fGMDnRW3lPcaLIn1rFmQ8Y3fvbJMk07se4Sc7y8AgO/EMUrXEYgSuO31iOhAWWmR3TsbSskDoJHu3D8MarMPQj3UpnBFeItjp3FL7SvSocIEQKx+1oY4fYWzjvqOc5nBnY5GC5POYgHjzKCr+exKYRi2zTE8tVzKO+l1AngB/E3CH9lFmEMH7fdB3K/TEun8InGQirh+0j2x0E62Cy3t1wnMgvDxIuASTCrZ8BjX0aB5SGIY0ASB8z3sDFFWrHiSwOIjLCxKUw2IhTj3EaO6lfJPLMc8Z5kFCLcN/q0I7pwytjebBMYj04DBDIyd/OK89FuQQrWTvLpOoT5B7WmMY6jV3Ke6CtrmhsDAywMp3zMPY9LEhY1MHmYQvA+z4NemHa5khjVDP4qaMn1Escw3TxRBKOlX3c8xqGDxvJ6gFuZPWcSff+WIJAQtfn3ItxccTzaGwbgeXiBUo0AXEIJmeaHg1NGHgCQEBTYJw6DUAX9QwICA/EwDnXjYTqPqfwLw8+2zd1+NPcQi/ck9JZYSUgeOYOeSieujQa9yLqhrQ/jzyLYsEUZtSxzJh7hDKwEdyAC1BBA5Mxdg8YfRrhsSMk7euOacACGoGHGPu+gU6Q++ANXYuApEF0xoMOnInDBTYdgpTFEvYAENwsiKcjJDHtwOyaoCbiSF0YSkJxsmLH6eEmSdD3vjjCBk8OhvDSpzJV8MAOADmADSnHqjGEDvxciuLz8HO9BwSydgbSykFhh5/GifPAbHjUCQl2moMxRAaLRV+AlYBf8hPm400SIXoppkeBqRMW+uimHA+3I3cyEuRFITpcwB2jIJlQJTeMdAccho/69lDlGmJI+dRJsnIJj+Y96MZdyzTsclxYYUkYBo3Soi+6XNmkkkaBNJjiKmVYOL5DdhuwB0YAb7HuP7ptejsVpzQa+6dSLPB936qaXjf6PpaJ2v3L1crJbatAtENtzOPN6+e7cEFzkzP67jSo6uxMUnXUb7CB7OxEazfXsL5TIGDp7sm/rt5JQtaOMv100uEbFgmC7y60bBzj+DGSkIoFsbb3Ses+dCir2NxelfSirxCudq0EsGnoshu7soyDx9sl4eNWAJJ0d+5Dx+Seb1AuDBYhsHRT6Bgr61muNiVXhdTEzFXKzjIyAJg42DXhFt639ml2pS5LxdrmmNzp9NOG9N0UBNtD/dKByMhT5/C0BvFLwBf4ECEKQRnpDERAG0fvWha+MduhCWEvGjMJzF2+zfIslLC4tLZjmdbayXZSsW7OzrY6SvrfwHOtrWBZeoScDwO2D7oH3A5v54KQBvTCBnguMxMOeQrQqyUQF5W0D0kK49jYBXRENj/hXmFUXwvfFiPdwSvL8PQKnjCbBYGgXT7uH1zjJhvOjq863Pt3ZCorNW1LZA0BcMS+w10YlQMMPABu3glhSJDwAdEFvkH1KD3VySWCdkTAobChGWJ4wDnzg/xAiBBjOLytH+HbdKAy8Fb4IIZfxXXk0zG8wFupLdLtD/cWPrhTosGYF+owYa5OnRjm3EFuDtMdADePaAdYC0yqL9IUAw/OFyctAduANAVYmAskkQCnDfny8EB0HHjAWIQYUGXhBTzpWZzPgcEBj3MhX0Om3ykNwxfnyg63BfLxdnrVKXdnJhw/1Y0gaSKYJMFXW8jcIauiETDvHmCSwhCMT9o5oomosE+kxciJMyYHb+5hiuKhBjniIh6QMwiE40nvPU4AiJiJQnOJZN4bjvInG65Ew6sVCp7VBopqASnC7458PHoKx5KAkIDARjBoEBLkGx07AyKSqj7nYxggjinGyrJdAoLTDSoHQCKx69GD18UJCsaCKXFBEUXyYxZ2s4LpbrpcYfMlEf3SEWaeaDTrgyxwMZpTsaAam/AtYzB6YUB+Rxzb44iuTCymULzlzhVvFBKBhzq5aiU2ExsCdOGjQbUs8NSgqJaOP4WMjNisfCIqfvSrTXcOkY2XUeL1IwU/7um6HzG7HxPwlpAOwfzEHtN9H/ddWrrvhp4n2F+UORq3o3vijX4QWkEkuYGbTW+soyeEt7mW2H3aiYwAPg2M3Qg6bqcDLh51KS4ETXEByfkjLlL5pVTPsNfLi+DU0wKIXXXbcRocbfseIln2SNLfVnd9ysttvvsiFXFFT/RAughz2u/393e1rudtrjKilp387ezj99/Rcybu7ngIiW3vc31+cwMueoaT7tn5Y65/0s6HV52Hqiq75SjbL7KBazvRHnf9E4YTgeQFrGMBDrzh8fyxV6Rph5dCJv8EOB64tO5c3LEZmD8cR3S1dnT/d14jOL28in8oEtBrHe1jt2sE5f2tITa6/7CLHcUlgsPpjhc7ZvEk+kFXWgHdA5Z3ot08eLvuw5efDm8xxhP2Q9QrvTL03x6+kXaLW1yH8hpX7wdcRwvEFO8F7z58iet2FwR3p5c/OdgsyJ7dzPFaXW2bm7S3u7L5d3DDkHcYzxkbmQnmEV0Nt7voeOtLtA/Fneae+XziwEwmeDWd7vUSbUByLe5t9p8LiA1eF9Xqes/XmoPJ/z6dvglpYj3LRfM2pM4dVKu9XzQvovxU++xA5mM/LeMFrWIgDvBWU2370X0HELzWdfoupORp7wXHtgMHrPxyK6/7KCBgeIdTDRxxaD2h0ZteTJOftOkDJHE3INOP19N/vMJl5qcK9KhVEAMvp7fa9CmBAJR/n16+61Audt/vVcPg02ymUxE7pr8Pp08MZDq9PYRAnwAUtk8o2AqBMMKfAMLt8LtH9QggIkZp/0GoIxSM7cnhmlbEAQYax9kjxvQoIHht+1R7SyiPLHMvLsw0vDCFcdt91JAeB0T4r2kXbIXGgWHu6G1tkwWgqp13GnYkPnJAjwUynf4KUC7ffeYgFs+Qu5IfYRdYbBTrPJ/fXAKMm+H02YHA1/5tKjSMU6fjifWy79hFIa/tMpkLlsEJ6tT08NMOg9kFCF6UeiPEQvDEoID1thWMBGFYQegAis/vQBjX57uNZEcg0+nN4SGK5e1rXP+LXGaY5oNFVFuAiBIuUKAwdoWxByDT6afrQ+HI3r4m2AEV+n3LqNhDvWzjsFwdj5AHu/jrjVCp20+7j2IPQESMPJSsUoBB2YQdeUBEUZ0sz/U7obyDkACIS2Fov94O9zGE/QDB4v3h3w5lgv/Xt69fE5JfmOg4eBNhfoUiIa8/v32npd7i9mxf3783IFIy1x8kmsvuzdu3f/nL6/Lz9u3bm+6lxHD94de9fvV+gQj1uj68lpomIaXP0mkfXl9f35zt+3v3DkTq2adrACOffPz4XF//env2JF/5/wHLSXvtoYayTQAAAABJRU5ErkJggg==">
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* =========================================================
+   JARIMATH KIDS PORTAL — frontend
+   Mode otomatis:
+   • Dibuka dari URL Apps Script  → pakai google.script.run
+   • Di-host sendiri (Netlify dll) → isi CONFIG.API_URL dengan URL /exec
+   • API_URL kosong & bukan Apps Script → MODE DEMO (data contoh di browser)
+   ========================================================= */
+const CONFIG = {
+  API_URL: '' // contoh: 'https://script.google.com/macros/s/AKfy..../exec'
+};
+const LOGO = 'data:image/png;base64,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';
+const IS_GAS = typeof google !== 'undefined' && google.script && google.script.run;
+const DEMO = !IS_GAS && !CONFIG.API_URL;
+
+const S = { token: null, role: null, profile: null, db: {}, settings: {}, me: null, page: 'dashboard', tab: {}, f: {} };
+
+/* ---------------- storage aman ---------------- */
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+
+/* ---------------- API ---------------- */
+async function call(action, payload = {}, opts = {}) {
+  const req = Object.assign({ action, token: S.token }, payload);
+  if (!opts.silent) loading(true);
+  try {
+    let res;
+    if (IS_GAS) {
+      res = await new Promise((ok, ko) => google.script.run.withSuccessHandler(r => ok(JSON.parse(r))).withFailureHandler(ko).api(JSON.stringify(req)));
+    } else if (DEMO) {
+      await new Promise(r => setTimeout(r, 120));
+      res = Mock.handle(JSON.parse(JSON.stringify(req)));
+    } else {
+      const r = await fetch(CONFIG.API_URL, { method: 'POST', body: JSON.stringify(req) });
+      res = await r.json();
+    }
+    if (!res.ok) {
+      if (res.error === 'SESSION') { logout(true); }
+      throw new Error(res.message || res.error || 'Terjadi kesalahan');
+    }
+    return res;
+  } finally { if (!opts.silent) loading(false); }
+}
+
+/* ---------------- helpers ---------------- */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const rp = n => 'Rp' + (Number(n) || 0).toLocaleString('id-ID');
+const pad = n => String(n).padStart(2, '0');
+const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+const thisPeriod = () => todayStr().slice(0, 7);
+const fmtDate = s => { if (!s) return '-'; const [y, m, d] = String(s).split('-'); return d ? `${+d} ${BULAN[+m - 1].slice(0, 3)} ${y}` : s; };
+const fmtDateLong = s => { if (!s) return '-'; const [y, m, d] = String(s).split('-'); return `${+d} ${BULAN[+m - 1]} ${y}`; };
+const fmtPeriod = p => { if (!p) return '-'; const [y, m] = p.split('-'); return `${BULAN[+m - 1]} ${y}`; };
+const addMonths = (p, n) => { let [y, m] = p.split('-').map(Number); m += n; while (m > 12) { m -= 12; y++; } while (m < 1) { m += 12; y--; } return `${y}-${pad(m)}`; };
+const dayName = s => HARI[new Date(s + 'T00:00:00').getDay()];
+const initials = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase();
+const sum = (arr, f) => arr.reduce((a, x) => a + (Number(f(x)) || 0), 0);
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const rand4 = () => String(Math.floor(1000 + Math.random() * 9000));
+function waNum(n) { n = String(n || '').replace(/\D/g, ''); if (n.startsWith('0')) n = '62' + n.slice(1); else if (n.startsWith('8')) n = '62' + n; return n; }
+function waLink(n, text) { return `https://wa.me/${waNum(n)}?text=${encodeURIComponent(text)}`; }
+function openWa(n, text) { if (!waNum(n)) return toast('Nomor WhatsApp belum diisi', true); window.open(waLink(n, text), '_blank'); }
+function formData(form) { const o = {}; new FormData(form).forEach((v, k) => o[k] = String(v).trim()); return o; }
+function monthOptions(sel, back = 12, fwd = 1) {
+  const cur = thisPeriod(); let out = '';
+  for (let i = fwd; i >= -back; i--) { const p = addMonths(cur, i); out += `<option value="${p}" ${p === sel ? 'selected' : ''}>${fmtPeriod(p)}</option>`; }
+  return out;
+}
+function downloadFile(name, content, type = 'text/csv;charset=utf-8') {
+  try {
+    const blob = new Blob(['﻿' + content], { type });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  } catch (e) { toast('Unduhan tidak didukung di tampilan ini', true); }
+}
+function toCSV(rows) { return rows.map(r => r.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\n'); }
+
+/* ---------------- UI primitives ---------------- */
+let toastT;
+function toast(msg, err) {
+  let t = $('#toast'); if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg; t.style.display = 'block';
+  clearTimeout(toastT); toastT = setTimeout(() => t.style.display = 'none', 2800);
+}
+let loadingN = 0;
+function loading(on) {
+  loadingN += on ? 1 : -1; if (loadingN < 0) loadingN = 0;
+  let l = $('#loading'); if (!l) { l = document.createElement('div'); l.id = 'loading'; l.className = 'loading hidden'; l.innerHTML = '<div class="spin"></div>'; document.body.appendChild(l); }
+  l.classList.toggle('hidden', loadingN === 0);
+}
+function modal(title, body, foot = '', wide = false) {
+  closeModal();
+  const m = document.createElement('div'); m.className = 'modal-bg'; m.id = 'modal';
+  m.innerHTML = `<div class="modal ${wide ? 'wide' : ''}"><div class="modal-h"><h3>${title}</h3><button class="icon-btn" onclick="closeModal()">${ic('x')}</button></div><div class="modal-b">${body}</div>${foot ? `<div class="modal-f">${foot}</div>` : ''}</div>`;
+  m.addEventListener('mousedown', e => { if (e.target === m) closeModal(); });
+  document.body.appendChild(m);
+  const f = m.querySelector('input:not([type=hidden]),select,textarea'); if (f && window.innerWidth > 700) setTimeout(() => f.focus(), 50);
+}
+function closeModal() { const m = $('#modal'); if (m) m.remove(); }
+function confirmBox(msg, onYes, yesLabel = 'Ya, hapus') {
+  window.__yes = () => { closeModal(); onYes(); };
+  modal('Konfirmasi', `<p>${msg}</p>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn red" onclick="__yes()">${yesLabel}</button>`);
+}
+function printHtml(inner, title = 'Cetak') {
+  const css = $('style').outerHTML;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(title)}</title><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">${css}<style>body{background:#fff;padding:24px}@media print{body{padding:0}.inv{border:0}}</style></head><body><div style="max-width:720px;margin:0 auto">${inner}</div><script>setTimeout(function(){window.print()},700)<\/script></body></html>`;
+  const w = window.open('', '_blank');
+  if (w) { w.document.open(); w.document.write(html); w.document.close(); }
+  else {
+    const d = document.createElement('div'); d.className = 'print-area'; d.innerHTML = inner; document.body.appendChild(d);
+    window.print(); setTimeout(() => d.remove(), 500);
+  }
+}
+
+/* ---------------- icons (garis, gaya lucide) ---------------- */
+const ICONS = {
+  home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.4 3.2-5.5 6.5-5.5s5.9 2.1 6.5 5.5"/><circle cx="17" cy="9" r="2.8"/><path d="M16.5 14.6c2.6.2 4.4 2 5 5.4"/>',
+  cal: '<rect x="3" y="4.5" width="18" height="16.5" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01"/>',
+  check: '<rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 2.5h6v3H9zM9 13l2.2 2.2L15.5 11"/>',
+  wallet: '<path d="M20 7V5.5A1.5 1.5 0 0 0 18.5 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14.5a1.5 1.5 0 0 0 1.5-1.5V16"/><path d="M3 7h16.5a1.5 1.5 0 0 1 1.5 1.5V16h-5a2.5 2.5 0 0 1 0-5h5"/>',
+  calc: '<rect x="5" y="2.5" width="14" height="19" rx="3"/><rect x="8" y="5.5" width="8" height="4" rx="1"/><path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/>',
+  star: '<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/>',
+  report: '<rect x="4.5" y="3" width="15" height="18" rx="3"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>',
+  teacher: '<circle cx="8" cy="7" r="3"/><path d="M3 20c.5-3.5 2.5-6 5-6s4.5 2.5 5 6"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><path d="M15 14l2-3"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  logout: '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  wa: '<path d="M3.5 20.5 5 16a8.5 8.5 0 1 1 3.2 3.1z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1.2-1.4-2-1-1 .8a4 4 0 0 1-2.1-2.1l.8-1-1-2z"/>',
+  print: '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>',
+  file: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+  download: '<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  gift: '<rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v7h14v-7M12 8v12M12 8S10.5 3.5 8 4.5 9 8 12 8zm0 0s1.5-4.5 4-3.5S15 8 12 8z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  cake: '<path d="M4 21h16v-7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 16c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5M12 12V8M12 5.5v-.01"/>',
+  alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M14 9l2 2"/>',
+  book: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7"/>'
+};
+const ic = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[n] || ''}</svg>`;
+
+/* ---------------- JARIMATIKA: level & generator soal ---------------- */
+const LEVELS = [
+  { n: 1, judul: 'Level 1 — Satuan', desc: 'Penjumlahan & pengurangan 1–9', color: 'var(--pink)', bg: 'var(--pink-50)', tip: 'Jari kanan = satuan. Telunjuk 1, jari tengah 2, jari manis 3, kelingking 4, jempol 5. Tambah = buka jari, kurang = tutup jari.' },
+  { n: 2, judul: 'Level 2 — Puluhan', desc: 'Penjumlahan & pengurangan 10–99', color: '#E0A800', bg: 'var(--yellow-50)', tip: 'Jari kiri = puluhan, jari kanan = satuan. Hitung satuan dulu, lalu puluhan.' },
+  { n: 3, judul: 'Level 3 — Perkalian', desc: 'Perkalian 1–10 dengan jari', color: 'var(--green)', bg: 'var(--green-50)', tip: 'Perkalian 6–10: jari yang dibuka = puluhan, jari tertutup kiri × kanan = satuan.' },
+  { n: 4, judul: 'Level 4 — Pembagian & Campuran', desc: 'Pembagian & operasi campuran', color: 'var(--blue)', bg: 'var(--blue-50)', tip: 'Pembagian = kebalikan perkalian. Cari angka yang jika dikali pembagi hasilnya sama.' }
+];
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+function genSoal(level) {
+  let a, b, c, q, ans;
+  if (level == 1) {
+    if (Math.random() < .55) { a = ri(1, 9); b = ri(1, 9); q = `${a} + ${b}`; ans = a + b; }
+    else { a = ri(2, 18); b = ri(1, Math.min(9, a)); q = `${a} − ${b}`; ans = a - b; }
+  } else if (level == 2) {
+    if (Math.random() < .55) { a = ri(10, 89); b = ri(10, 99 - a > 10 ? 99 - a : 10); q = `${a} + ${b}`; ans = a + b; }
+    else { a = ri(20, 99); b = ri(10, a); q = `${a} − ${b}`; ans = a - b; }
+  } else if (level == 3) {
+    a = Math.random() < .6 ? ri(6, 10) : ri(2, 5); b = Math.random() < .6 ? ri(6, 10) : ri(1, 10);
+    q = `${a} × ${b}`; ans = a * b;
+  } else {
+    if (Math.random() < .55) { b = ri(2, 10); c = ri(1, 10); a = b * c; q = `${a} ÷ ${b}`; ans = c; }
+    else { a = ri(10, 50); b = ri(5, 40); c = ri(1, Math.min(30, a + b)); q = `${a} + ${b} − ${c}`; ans = a + b - c; }
+  }
+  return { q, ans: String(ans) };
+}
+function buildQuiz(level, bank, n = 10) {
+  const pool = (bank || []).filter(s => String(s.level) === String(level) && s.aktif !== 'Tidak').sort(() => Math.random() - .5);
+  const out = pool.slice(0, Math.min(5, pool.length)).map(s => ({ q: s.soal, ans: String(s.jawaban).trim() }));
+  const seen = new Set(out.map(x => x.q));
+  let guard = 0;
+  while (out.length < n && guard++ < 200) { const g = genSoal(level); if (!seen.has(g.q)) { seen.add(g.q); out.push(g); } }
+  return out.sort(() => Math.random() - .5);
+}
+const starsFor = skor => skor >= 90 ? 3 : skor >= 75 ? 2 : skor >= 60 ? 1 : 0;
+
+/* ---------------- SPP helpers (dipakai admin & ortu) ---------------- */
+function sppNominal(s, settings) { return Number(s.sppNominal) || Number(settings.nominalSPP) || 0; }
+function billablePeriods(s, upto = thisPeriod(), max = 12) {
+  const start = (s.tglMulai || upto).slice(0, 7);
+  const out = []; let p = upto;
+  for (let i = 0; i < max; i++) { if (p < start) break; out.unshift(p); p = addMonths(p, -1); }
+  return out;
+}
+function invoiceNo(siswaId, periode) { return `INV-${periode.replace('-', '')}-${siswaId}`; }
+function dueDate(periode, settings) { return `${periode}-${pad(Math.min(28, Number(settings.jatuhTempo) || 10))}`; }
+
+function invoiceHtml(s, periode, pay, settings) {
+  const paid = !!pay;
+  const nominal = paid ? Number(pay.nominal) : sppNominal(s, settings);
+  const no = paid ? (pay.noInvoice || invoiceNo(s.id, periode)) : invoiceNo(s.id, periode);
+  return `<div class="inv">
+    <div class="inv-h"><img src="${LOGO}" alt=""><div style="flex:1"><h2>${esc(settings.namaLembaga)}</h2><div class="small muted">${esc(settings.tagline || '')}</div><div class="small muted">${esc(settings.alamat || '')} · WA ${esc(settings.noWa || '')}</div></div>
+    <div style="text-align:right"><div style="font-family:var(--font-h);font-size:18px;font-weight:700">${paid ? 'KWITANSI' : 'INVOICE'}</div><div class="small num">${esc(no)}</div></div></div>
+    <div class="stamp ${paid ? 'paid' : 'unpaid'}">${paid ? 'LUNAS' : 'BELUM LUNAS'}</div>
+    <table>
+      <tr><td style="width:150px" class="muted">Kepada</td><td><b>${esc(s.ortu || 'Orang tua/wali')}</b></td></tr>
+      <tr><td class="muted">Nama siswa</td><td><b>${esc(s.nama)}</b> (${esc(s.id)}) · Level ${esc(s.level || 1)}</td></tr>
+      <tr><td class="muted">Tanggal</td><td>${fmtDateLong(paid ? pay.tanggalBayar : todayStr())}</td></tr>
+      ${paid ? `<tr><td class="muted">Metode bayar</td><td>${esc(pay.metode || '-')}</td></tr>` : `<tr><td class="muted">Jatuh tempo</td><td><b style="color:var(--red)">${fmtDateLong(dueDate(periode, settings))}</b></td></tr>`}
+    </table>
+    <div style="border-radius:12px;background:var(--pink-50);padding:14px;margin:14px 0;display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><b>SPP Jarimatika — ${fmtPeriod(periode)}</b><div class="small muted">Biaya les bulanan</div></div>
+      <div class="tot num">${rp(nominal)}</div>
+    </div>
+    ${paid ? `<p class="small">Terima kasih, pembayaran SPP periode ${fmtPeriod(periode)} telah kami terima. ${pay.catatan ? '· ' + esc(pay.catatan) : ''}</p>`
+      : `<p class="small"><b>Pembayaran via transfer:</b><br>${esc(settings.rekening || '-')}<br>Mohon kirim bukti transfer ke WhatsApp ${esc(settings.noWa || '')}. Terima kasih 🙏</p>`}
+    <div class="small muted" style="margin-top:14px;text-align:right">Dicetak ${fmtDateLong(todayStr())}</div>
+  </div>`;
+}
+function invoiceWaText(s, periode, pay, settings) {
+  if (pay) return `Assalamu'alaikum Bapak/Ibu ${s.ortu || ''},\n\nTerima kasih, pembayaran SPP *${settings.namaLembaga}* telah kami terima ✅\n\nNo. Kwitansi: ${pay.noInvoice || invoiceNo(s.id, periode)}\nNama siswa: ${s.nama}\nPeriode: ${fmtPeriod(periode)}\nNominal: ${rp(pay.nominal)}\nTanggal bayar: ${fmtDateLong(pay.tanggalBayar)}\n\nSemangat belajar Jarimatika! ✋✨`;
+  return `Assalamu'alaikum Bapak/Ibu ${s.ortu || ''},\n\nKami informasikan tagihan SPP *${settings.namaLembaga}*:\n\nNo. Invoice: ${invoiceNo(s.id, periode)}\nNama siswa: ${s.nama}\nPeriode: ${fmtPeriod(periode)}\nNominal: *${rp(sppNominal(s, settings))}*\nJatuh tempo: ${fmtDateLong(dueDate(periode, settings))}\n\nPembayaran dapat ditransfer ke:\n${settings.rekening || '-'}\n\nMohon kirim bukti transfer melalui chat ini. Invoice juga bisa dilihat di Portal Orang Tua. Terima kasih 🙏`;
+}
+
+/* ---------------- LOGIN ---------------- */
+function renderLogin(role = S.loginRole || 'admin') {
+  S.loginRole = role;
+  const lbl = { admin: ['Username', 'Password', 'text'], murid: ['ID Siswa (contoh: JMK001)', 'PIN Murid', 'text'], ortu: ['ID Siswa (contoh: JMK001)', 'Kode Akses Orang Tua', 'text'] }[role];
+  $('#app').innerHTML = `<div class="login-wrap"><div class="login-card">
+    <img class="logo" src="${LOGO}" alt="JariMath Kids">
+    <h1>Portal JariMath Kids</h1>
+    <p class="muted small">Berhitung cepat dengan jari tangan ✋</p>
+    <div class="tabs">
+      ${[['admin', 'Admin'], ['murid', 'Murid'], ['ortu', 'Orang Tua']].map(([k, v]) => `<button class="${k === role ? 'on' : ''}" onclick="renderLogin('${k}')">${v}</button>`).join('')}
+    </div>
+    <form onsubmit="doLogin(event)">
+      <div class="field"><label>${lbl[0]}</label><input class="input" name="user" autocomplete="username" required ${role !== 'admin' ? 'style="text-transform:uppercase"' : ''}></div>
+      <div class="field"><label>${lbl[1]}</label><input class="input" name="pass" type="password" ${role !== 'admin' ? 'inputmode="numeric"' : ''} autocomplete="current-password" required></div>
+      <button class="btn block" style="margin-top:4px;padding:13px">Masuk</button>
+    </form>
+    <p class="login-hint">${role === 'admin' ? 'Khusus pengelola JariMath Kids.' : role === 'murid' ? 'PIN diberikan oleh admin/guru.' : 'Kode akses dikirim admin lewat WhatsApp.'}</p>
+    ${DEMO ? `<div class="demo-box"><b>Mode Demo</b> — data contoh tersimpan di browser ini.<br>Admin: <b>admin</b> / <b>jarimath123</b> · Murid: <b>JMK001</b> PIN <b>1234</b> · Ortu: <b>JMK001</b> kode <b>5678</b></div>` : ''}
+  </div></div>`;
+}
+async function doLogin(e) {
+  e.preventDefault();
+  const f = formData(e.target);
+  try {
+    const r = await call('login', { role: S.loginRole, user: f.user, pass: f.pass });
+    S.token = r.token; S.role = r.role; S.profile = r.profile;
+    store.set('jmk_session', { token: r.token, role: r.role, profile: r.profile });
+    await startApp();
+  } catch (err) { toast(err.message, true); }
+}
+function logout(expired) {
+  if (S.token && !expired) call('logout', {}, { silent: true }).catch(() => {});
+  S.token = null; S.role = null; S.db = {}; S.me = null; S.page = 'dashboard';
+  store.del('jmk_session'); closeModal();
+  renderLogin();
+  if (expired) toast('Sesi berakhir, silakan login kembali', true);
+}
+async function startApp() {
+  if (S.role === 'admin') { const r = await call('bootstrap'); S.db = r.data.db; S.settings = r.data.settings; renderAdmin(); }
+  else { const r = await call('me'); S.me = r.data; S.settings = r.data.settings; S.role === 'murid' ? renderMurid() : renderOrtu(); }
+  if (DEMO && !$('.mode-flag')) { const f = document.createElement('div'); f.className = 'mode-flag'; f.textContent = 'MODE DEMO'; document.body.appendChild(f); }
+}
+async function init() {
+  const sess = store.get('jmk_session');
+  if (sess && sess.token) {
+    Object.assign(S, { token: sess.token, role: sess.role, profile: sess.profile });
+    try { await startApp(); return; } catch (e) { S.token = null; store.del('jmk_session'); }
+  }
+  renderLogin();
+}
+
+/* ---------------- MODE DEMO: tiruan backend Apps Script di browser ---------------- */
+const Mock = (() => {
+  const KEY = 'jmk_demo_db_v1';
+  const SCH = {
+    Siswa: 1, Guru: 1, Jadwal: 1, Absensi: 1, AbsensiGuru: 1, SPP: 1, Laporan: 1, Nilai: 1, Bintang: 1, Soal: 1
+  };
+  let mem = null; const sessions = {};
+  function seed() {
+    const cur = thisPeriod(), prev = addMonths(cur, -1), prev2 = addMonths(cur, -2);
+    const names = [
+      ['Aisyah Putri Ramadhani', 'Aisyah', 'P', 'Ibu Rina', 3], ['Muhammad Fatih', 'Fatih', 'L', 'Bapak Hendra', 2],
+      ['Nayla Zahra', 'Nayla', 'P', 'Ibu Dewi', 1], ['Rafa Alfarizi', 'Rafa', 'L', 'Ibu Sari', 4],
+      ['Khanza Aulia', 'Khanza', 'P', 'Bapak Yusuf', 2], ['Arkan Pratama', 'Arkan', 'L', 'Ibu Lina', 1],
+      ['Zahira Salsabila', 'Zahira', 'P', 'Ibu Fitri', 3], ['Daffa Ramadhan', 'Daffa', 'L', 'Bapak Agus', 1]
+    ];
+    const Siswa = names.map((n, i) => ({
+      id: 'JMK' + pad(i + 1).padStart(3, '0'), nama: n[0], panggilan: n[1], jk: n[2], tglLahir: `201${7 + (i % 3)}-${pad((i * 3) % 12 + 1)}-${pad(5 + i * 2)}`,
+      ortu: n[3], waOrtu: '08123456789' + i, alamat: 'Cirebon', tglMulai: i < 6 ? addMonths(cur, -2) + '-05' : cur + '-02',
+      level: String(n[4]), status: i === 7 ? 'Cuti' : 'Aktif', sppNominal: i === 3 ? '175000' : '', pin: i === 0 ? '1234' : rand4(), kodeOrtu: i === 0 ? '5678' : rand4(), catatan: ''
+    }));
+    const Guru = [{ id: 'G01', nama: 'Bu Risya', wa: '081200000001', status: 'Aktif', catatan: 'Koordinator' }, { id: 'G02', nama: 'Kak Dinda', wa: '081200000002', status: 'Aktif', catatan: '' }];
+    const Jadwal = [
+      { id: 'J1', hari: 'Senin', sesi: '1', jamMulai: '14:00', jamSelesai: '15:00', tipe: 'Reguler', guruId: 'G01', siswaIds: 'JMK001,JMK002,JMK003', catatan: '' },
+      { id: 'J2', hari: 'Senin', sesi: '2', jamMulai: '15:30', jamSelesai: '16:30', tipe: 'Semiprivat', guruId: 'G02', siswaIds: 'JMK004,JMK005', catatan: '' },
+      { id: 'J3', hari: 'Rabu', sesi: '1', jamMulai: '14:00', jamSelesai: '15:00', tipe: 'Reguler', guruId: 'G01', siswaIds: 'JMK001,JMK002,JMK003', catatan: '' },
+      { id: 'J4', hari: 'Kamis', sesi: '1', jamMulai: '16:00', jamSelesai: '17:00', tipe: 'Privat', guruId: 'G02', siswaIds: 'JMK006', catatan: '' },
+      { id: 'J5', hari: 'Sabtu', sesi: '1', jamMulai: '09:00', jamSelesai: '10:00', tipe: 'Reguler', guruId: 'G01', siswaIds: 'JMK004,JMK005,JMK007', catatan: '' },
+      { id: 'J6', hari: HARI[new Date().getDay()] === 'Minggu' ? 'Sabtu' : HARI[new Date().getDay()], sesi: '3', jamMulai: '16:00', jamSelesai: '17:00', tipe: 'Reguler', guruId: 'G02', siswaIds: 'JMK006,JMK007,JMK008', catatan: '' }
+    ];
+    const Absensi = [], AbsensiGuru = [];
+    const st = ['H', 'H', 'H', 'H', 'H', 'H', 'I', 'S', 'H', 'A'];
+    for (let d = 1; d <= 26; d++) {
+      const dt = new Date(); dt.setDate(dt.getDate() - d); if (dt.getDay() === 0) continue;
+      if (d % 2) continue;
+      const tg = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+      Siswa.slice(0, 7).forEach((s, i) => Absensi.push({ id: uid('AB'), tanggal: tg, siswaId: s.id, status: { H: 'Hadir', I: 'Izin', S: 'Sakit', A: 'Alpa' }[st[(d + i) % 10]], guruId: 'G01', catatan: '' }));
+      Guru.forEach((g, i) => AbsensiGuru.push({ id: uid('AG'), tanggal: tg, guruId: g.id, status: (d + i) % 9 === 0 ? 'Izin' : 'Hadir', jamMasuk: '13:45', jamKeluar: i ? '17:00' : '16:30', jamMengajar: i ? '3' : '2.5', catatan: '' }));
+    }
+    const SPP = [];
+    Siswa.forEach((s, i) => {
+      [prev2, prev, cur].forEach((p, k) => {
+        if (p < s.tglMulai.slice(0, 7)) return;
+        if (k === 2 && i % 3 !== 0) return;           // bulan ini sebagian belum bayar
+        if (k === 1 && i === 4) return;                // ada tunggakan bulan lalu
+        SPP.push({ id: uid('SP'), noInvoice: invoiceNo(s.id, p), siswaId: s.id, periode: p, nominal: s.sppNominal || '150000', tanggalBayar: p + '-0' + (3 + i % 5), metode: i % 2 ? 'Transfer' : 'Tunai', catatan: '' });
+      });
+    });
+    const Nilai = [], Bintang = [];
+    Siswa.slice(0, 7).forEach((s, i) => {
+      for (let k = 0; k < 4; k++) {
+        const dt = new Date(); dt.setDate(dt.getDate() - k * 4 - i);
+        const tg = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+        const benar = 6 + ((i + k) % 5), skor = benar * 10, b = starsFor(skor), lv = Math.max(1, Number(s.level) - (k % 2));
+        Nilai.push({ id: uid('NI'), siswaId: s.id, tanggal: tg, level: String(lv), benar: String(benar), total: '10', skor: String(skor), durasi: String(60 + i * 9), bintang: String(b) });
+        if (b) Bintang.push({ id: uid('BI'), siswaId: s.id, tanggal: tg, jumlah: String(b), tipe: 'Latihan', keterangan: `Latihan Level ${lv} (skor ${skor})` });
+      }
+    });
+    Bintang.push({ id: uid('BI'), siswaId: 'JMK001', tanggal: todayStr(), jumlah: '5', tipe: 'Bonus', keterangan: 'Rajin hadir sebulan penuh' });
+    Bintang.push({ id: uid('BI'), siswaId: 'JMK002', tanggal: todayStr(), jumlah: '-5', tipe: 'Tukar', keterangan: 'Tukar pensil warna' });
+    const Soal = [
+      { id: 'SO1', level: '1', soal: '4 + 5', jawaban: '9', aktif: 'Ya' }, { id: 'SO2', level: '1', soal: '9 − 3', jawaban: '6', aktif: 'Ya' },
+      { id: 'SO3', level: '3', soal: '7 × 8', jawaban: '56', aktif: 'Ya' }, { id: 'SO4', level: '4', soal: '63 ÷ 9', jawaban: '7', aktif: 'Ya' }
+    ];
+    const Laporan = [{ id: 'LP1', siswaId: 'JMK001', periode: prev, level: '3', hadir: '7', pertemuan: '8', rataNilai: '86', bintang: '9', pencapaian: 'Sudah lancar perkalian 6–10 dengan jari. Kecepatan meningkat.', catatanGuru: 'Aisyah sangat fokus dan rajin. Pertahankan latihan 10 menit setiap hari di rumah ya!', dibuat: prev + '-28' }];
+    return {
+      Siswa, Guru, Jadwal, Absensi, AbsensiGuru, SPP, Laporan, Nilai, Bintang, Soal,
+      Users: [{ id: 'U1', username: 'admin', pass: 'jarimath123', nama: 'Admin JariMath', role: 'admin' }],
+      Pengaturan: { namaLembaga: 'JariMath Kids', tagline: 'Berhitung Cepat dengan Jari Tangan', alamat: 'Jl. Contoh No. 12, Cirebon', noWa: '081234567890', nominalSPP: '150000', jatuhTempo: '10', tahunAjaran: '2026/2027', rekening: 'BCA 1234567890 a.n. JariMath Kids', pertemuanPerBulan: '8' }
+    };
+  }
+  function db() { if (!mem) { mem = store.get(KEY) || seed(); save(); } return mem; }
+  function save() { store.set(KEY, mem); }
+  function sess(t) { return sessions[t] || (store.get('jmk_demo_sess') || {})[t]; }
+  function newId(t, rows) {
+    if (t === 'Siswa') { const m = Math.max(0, ...rows.map(r => parseInt(String(r.id).replace(/\D/g, ''), 10) || 0)); return 'JMK' + String(m + 1).padStart(3, '0'); }
+    return uid(t.slice(0, 2).toUpperCase());
+  }
+  function upsert(t, row) {
+    const rows = db()[t]; const r = Object.assign({}, row);
+    Object.keys(r).forEach(k => r[k] = r[k] == null ? '' : String(r[k]));
+    const i = r.id ? rows.findIndex(x => x.id === r.id) : -1;
+    if (i > -1) rows[i] = Object.assign(rows[i], r);
+    else { if (!r.id) r.id = newId(t, rows); if (t === 'SPP' && !r.noInvoice) r.noInvoice = invoiceNo(r.siswaId, r.periode); rows.push(r); }
+    return r;
+  }
+  function pub(s) { const { namaLembaga, tagline, alamat, noWa, rekening, jatuhTempo, nominalSPP, tahunAjaran } = s; return { namaLembaga, tagline, alamat, noWa, rekening, jatuhTempo, nominalSPP, tahunAjaran }; }
+  function handle(req) {
+    const D = db(); const a = req.action;
+    if (a === 'login') {
+      let p = null;
+      if (req.role === 'admin') { const u = D.Users.find(x => x.username.toLowerCase() === String(req.user).toLowerCase() && x.pass === req.pass); if (u) p = { id: u.id, nama: u.nama, username: u.username }; }
+      else { const s = D.Siswa.find(x => x.id.toUpperCase() === String(req.user).toUpperCase()); const k = req.role === 'murid' ? 'pin' : 'kodeOrtu'; if (s && s[k] === req.pass && s.status !== 'Berhenti') p = { id: s.id, nama: s.nama, panggilan: s.panggilan }; }
+      if (!p) return { ok: false, error: req.role === 'admin' ? 'Username atau password salah.' : 'ID siswa atau kode salah.' };
+      const token = uid('T'); sessions[token] = { role: req.role, uid: p.id };
+      const all = store.get('jmk_demo_sess') || {}; all[token] = sessions[token]; store.set('jmk_demo_sess', all);
+      return { ok: true, token, role: req.role, profile: p };
+    }
+    const s = sess(req.token);
+    if (!s) return { ok: false, error: 'SESSION' };
+    if (a === 'logout') return { ok: true };
+    if (s.role === 'admin') {
+      if (a === 'bootstrap') { const o = {}; Object.keys(SCH).forEach(t => o[t] = D[t]); return { ok: true, data: { db: JSON.parse(JSON.stringify(o)), settings: Object.assign({}, D.Pengaturan) } }; }
+      if (a === 'save') { const r = upsert(req.table, req.row); save(); return { ok: true, row: r }; }
+      if (a === 'saveMany') { const rows = (req.rows || []).map(r => upsert(req.table, r)); save(); return { ok: true, rows }; }
+      if (a === 'remove') { D[req.table] = D[req.table].filter(r => r.id !== req.id); save(); return { ok: true }; }
+      if (a === 'saveSettings') { Object.assign(D.Pengaturan, req.settings); save(); return { ok: true, settings: D.Pengaturan }; }
+      if (a === 'changePassword') { const u = D.Users.find(x => x.id === s.uid); if (u.pass !== req.oldPass) return { ok: false, error: 'Password lama salah.' }; if (String(req.newPass).length < 6) return { ok: false, error: 'Password baru minimal 6 karakter.' }; u.pass = req.newPass; save(); return { ok: true }; }
+    } else {
+      const sw = D.Siswa.find(x => x.id === s.uid);
+      if (a === 'me') {
+        const mine = t => D[t].filter(r => r.siswaId === s.uid);
+        const safe = Object.assign({}, sw); delete safe.pin; delete safe.kodeOrtu;
+        const jadwal = D.Jadwal.filter(j => j.siswaIds.split(',').includes(s.uid)).map(j => Object.assign({}, j, { guruNama: (D.Guru.find(g => g.id === j.guruId) || {}).nama || '' }));
+        return { ok: true, data: JSON.parse(JSON.stringify({ role: s.role, siswa: safe, settings: pub(D.Pengaturan), Absensi: mine('Absensi'), SPP: s.role === 'ortu' ? mine('SPP') : [], Laporan: s.role === 'ortu' ? mine('Laporan') : [], Nilai: mine('Nilai'), Bintang: mine('Bintang'), Jadwal: jadwal, Soal: s.role === 'murid' ? D.Soal.filter(q => q.aktif !== 'Tidak') : [] })) };
+      }
+      if (a === 'submitQuiz' && s.role === 'murid') {
+        const level = Math.max(1, Math.min(4, +req.level || 1));
+        if (level > (+sw.level || 1)) return { ok: false, error: 'Level ini belum terbuka.' };
+        const total = Math.max(1, Math.min(50, +req.total || 10)), benar = Math.max(0, Math.min(total, +req.benar || 0));
+        const skor = Math.round(benar / total * 100), bintang = starsFor(skor), tg = todayStr();
+        upsert('Nilai', { siswaId: s.uid, tanggal: tg, level, benar, total, skor, durasi: +req.durasi || 0, bintang });
+        if (bintang) upsert('Bintang', { siswaId: s.uid, tanggal: tg, jumlah: bintang, tipe: 'Latihan', keterangan: `Latihan Level ${level} (skor ${skor})` });
+        save(); return { ok: true, result: { skor, bintang } };
+      }
+    }
+    return { ok: false, error: 'Akses ditolak' };
+  }
+  function reset() { store.del(KEY); mem = null; }
+  return { handle, reset };
+})();
+
+/* =========================================================
+   PORTAL ADMIN
+   ========================================================= */
+const NAV = [
+  ['dashboard', 'Dashboard', 'grid', 'bg-pink'],
+  ['siswa', 'Data Siswa', 'users', 'bg-yellow'],
+  ['jadwal', 'Jadwal Les', 'cal', 'bg-green'],
+  ['absensi', 'Absensi Siswa', 'check', 'bg-blue'],
+  ['spp', 'Pembayaran SPP', 'wallet', 'bg-pink'],
+  ['belajar', 'Belajar & Level', 'calc', 'bg-yellow'],
+  ['bintang', 'Bintang & Reward', 'star', 'bg-green'],
+  ['laporan', 'Laporan Bulanan', 'report', 'bg-blue'],
+  ['guru', 'Kehadiran Guru', 'teacher', 'bg-purple'],
+  ['pengaturan', 'Pengaturan', 'settings', 'bg-orange']
+];
+const ST = { H: 'Hadir', I: 'Izin', S: 'Sakit', A: 'Alpa' };
+const ST_K = { Hadir: 'H', Izin: 'I', Sakit: 'S', Alpa: 'A' };
+
+/* ---------- data helpers ---------- */
+const D = t => S.db[t] || (S.db[t] = []);
+const siswaById = id => D('Siswa').find(s => s.id === id) || { id, nama: '(terhapus)' };
+const guruById = id => D('Guru').find(g => g.id === id) || { id, nama: '-' };
+const siswaAktif = () => D('Siswa').filter(s => s.status === 'Aktif').sort((a, b) => a.nama.localeCompare(b.nama));
+const payOf = (sid, p) => D('SPP').find(x => x.siswaId === sid && x.periode === p);
+const billedIn = (s, p) => s.status === 'Aktif' && (s.tglMulai || '0000').slice(0, 7) <= p;
+function unpaidFor(p) { return siswaAktif().filter(s => billedIn(s, p) && !payOf(s.id, p)); }
+function starTotal(sid, list = D('Bintang')) { return sum(list.filter(b => b.siswaId === sid), b => b.jumlah); }
+function absMonth(sid, p, list = D('Absensi')) {
+  const rows = list.filter(a => a.siswaId === sid && String(a.tanggal).startsWith(p));
+  const c = { Hadir: 0, Izin: 0, Sakit: 0, Alpa: 0 }; rows.forEach(r => c[r.status] = (c[r.status] || 0) + 1);
+  return { ...c, total: rows.length, rows };
+}
+function replaceRows(t, rows) { rows.forEach(r => { const i = D(t).findIndex(x => x.id === r.id); i > -1 ? D(t)[i] = r : D(t).push(r); }); }
+async function saveRow(t, row) { const r = await call('save', { table: t, row }); replaceRows(t, [r.row]); return r.row; }
+async function saveRows(t, rows) { const r = await call('saveMany', { table: t, rows }); replaceRows(t, r.rows); return r.rows; }
+async function removeRow(t, id) { await call('remove', { table: t, id }); S.db[t] = D(t).filter(x => x.id !== id); }
+const lvBadge = l => `<span class="badge ${['b-pink', 'b-yellow', 'b-green', 'b-blue'][(+l || 1) - 1]}">Level ${esc(l || 1)}</span>`;
+const stBadge = s => `<span class="badge ${s === 'Aktif' ? 'b-green' : s === 'Cuti' ? 'b-yellow' : 'b-gray'}">${esc(s)}</span>`;
+
+/* ---------- shell ---------- */
+function renderAdmin() {
+  const unpaid = unpaidFor(thisPeriod()).length;
+  $('#app').innerHTML = `<div class="shell">
+    <aside class="side" id="side">
+      <div class="brand"><img src="${LOGO}" alt=""><div><b>${esc(S.settings.namaLembaga || 'JariMath Kids')}</b><span>Portal Admin</span></div></div>
+      ${NAV.map(([k, l, i]) => `<button class="nav-item ${S.page === k ? 'on' : ''}" onclick="go('${k}')">${ic(i)}<span>${l}</span>${k === 'spp' && unpaid ? `<span class="cnt">${unpaid}</span>` : ''}</button>`).join('')}
+      <div class="spacer"></div>
+      <button class="nav-item" onclick="logout()">${ic('logout')}<span>Keluar</span></button>
+    </aside>
+    <div id="scrim" class="scrim hidden" onclick="toggleSide(false)"></div>
+    <div class="main">
+      <div class="topbar">
+        <button class="icon-btn menu-btn" onclick="toggleSide(true)">${ic('menu')}</button>
+        <h2 id="pageTitle"></h2><div class="spacer"></div>
+        <div class="user-pill"><span class="nm">${esc(S.profile.nama)}</span><div class="avatar">${initials(S.profile.nama)}</div></div>
+      </div>
+      <div class="content" id="page"></div>
+    </div></div>`;
+  renderPage();
+}
+function toggleSide(on) { $('#side').classList.toggle('open', on); $('#scrim').classList.toggle('hidden', !on); }
+function go(p) { S.page = p; renderAdmin(); window.scrollTo(0, 0); }
+function renderPage() {
+  const nav = NAV.find(n => n[0] === S.page) || NAV[0];
+  $('#pageTitle').textContent = nav[1];
+  const fn = { dashboard: pgDashboard, siswa: pgSiswa, jadwal: pgJadwal, absensi: pgAbsensi, spp: pgSPP, belajar: pgBelajar, bintang: pgBintang, laporan: pgLaporan, guru: pgGuru, pengaturan: pgPengaturan }[S.page];
+  $('#page').innerHTML = fn();
+}
+const rerender = () => { if (S.role === 'admin') renderAdmin(); };
+function tabs(key, items, def) {
+  const cur = S.tab[key] || def;
+  return `<div class="row"><div class="tabs">${items.map(([k, l]) => `<button class="${cur === k ? 'on' : ''}" onclick="S.tab['${key}']='${k}';renderPage()">${l}</button>`).join('')}</div></div>`;
+}
+const setF = (k, v) => { S.f[k] = v; renderPage(); };
+
+/* ================= DASHBOARD ================= */
+function pgDashboard() {
+  const p = thisPeriod(), today = todayStr(), hari = dayName(today);
+  const aktif = siswaAktif();
+  const baru = aktif.filter(s => (s.tglMulai || '').startsWith(p)).length;
+  const unpaid = unpaidFor(p);
+  const paidRows = D('SPP').filter(x => x.periode === p);
+  const absToday = D('Absensi').filter(a => a.tanggal === today);
+  const jadwal = D('Jadwal').filter(j => j.hari === hari).sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+  const bulanLahir = today.slice(5, 7);
+  const ultah = aktif.filter(s => (s.tglLahir || '').slice(5, 7) === bulanLahir).sort((a, b) => a.tglLahir.slice(8).localeCompare(b.tglLahir.slice(8)));
+  const latest = [...D('Nilai')].sort((a, b) => b.tanggal.localeCompare(a.tanggal)).slice(0, 5);
+  return `
+  <div class="hero"><img src="${LOGO}" alt=""><div style="position:relative;z-index:1"><h2>Assalamu'alaikum 👋</h2><p>Selamat datang di sistem administrasi ${esc(S.settings.namaLembaga)}. Hari ini ${hari}, ${fmtDateLong(today)}.</p></div></div>
+  <div class="tiles desktop-hide">${NAV.slice(1).map(([k, l, i, bg]) => `<button class="tile ${bg}" onclick="go('${k}')">${ic(i)}${l}</button>`).join('')}</div>
+  <div class="grid g4">
+    <div class="stat bg-pink"><span class="lbl">Siswa aktif</span><span class="val num">${aktif.length}</span><span class="sub">${baru} siswa baru bulan ini</span></div>
+    <div class="stat bg-blue"><span class="lbl">Hadir hari ini</span><span class="val num">${absToday.filter(a => a.status === 'Hadir').length}<small style="font-size:16px"> / ${absToday.length}</small></span><span class="sub">${absToday.length ? 'sudah diabsen' : 'belum ada absensi'}</span></div>
+    <div class="stat bg-red" style="cursor:pointer" onclick="S.tab.spp='tagihan';S.f.sppFilter='belum';go('spp')"><span class="lbl" style="color:#B4282D">Belum bayar SPP</span><span class="val num" style="color:var(--red)">${unpaid.length}</span><span class="sub">${rp(sum(unpaid, s => sppNominal(s, S.settings)))} · ${fmtPeriod(p)}</span></div>
+    <div class="stat bg-green"><span class="lbl">SPP masuk bulan ini</span><span class="val num" style="font-size:22px">${rp(sum(paidRows, x => x.nominal))}</span><span class="sub">${paidRows.length} pembayaran</span></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="card-head"><h3>Belum bayar SPP — ${fmtPeriod(p)}</h3><div class="spacer"></div><button class="btn sm ghost" onclick="S.tab.spp='tagihan';S.f.sppFilter='belum';go('spp')">Lihat semua</button></div>
+      ${unpaid.length ? unpaid.slice(0, 6).map(s => `<div class="li"><div class="avatar" style="background:var(--red-50);color:var(--red)">${initials(s.nama)}</div><div class="meta"><b>${esc(s.nama)}</b><span class="small muted">${esc(s.ortu || '-')} · ${rp(sppNominal(s, S.settings))}</span></div>
+        <button class="icon-btn" title="Invoice" onclick="showInvoice('${s.id}','${p}')">${ic('file')}</button><button class="icon-btn" title="Kirim WA" onclick="waInvoice('${s.id}','${p}')">${ic('wa')}</button></div>`).join('') : `<div class="empty">🎉 Semua siswa sudah bayar SPP bulan ini</div>`}
+    </div>
+    <div class="card"><div class="card-head"><h3>Jadwal hari ini (${hari})</h3><div class="spacer"></div><button class="btn sm ghost" onclick="go('absensi')">Absen</button></div>
+      ${jadwal.length ? jadwal.map(j => `<div class="li"><div class="avatar" style="background:var(--green-50);color:var(--green)">${esc(j.sesi)}</div><div class="meta"><b>${esc(j.jamMulai)}–${esc(j.jamSelesai)} · ${esc(j.tipe)}</b><span class="small muted">${esc(guruById(j.guruId).nama)} · ${j.siswaIds ? j.siswaIds.split(',').map(i => esc(siswaById(i.trim()).panggilan || siswaById(i.trim()).nama)).join(', ') : '-'}</span></div></div>`).join('') : `<div class="empty">Tidak ada jadwal les hari ini</div>`}
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h3>🎂 Ulang tahun bulan ini</h3>
+      ${ultah.length ? ultah.map(s => `<div class="li"><div class="avatar">${initials(s.nama)}</div><div class="meta"><b>${esc(s.nama)}</b><span class="small muted">${fmtDateLong(s.tglLahir)}</span></div>${s.tglLahir.slice(5) === today.slice(5) ? '<span class="badge b-pink">Hari ini!</span>' : ''}</div>`).join('') : '<div class="empty">Tidak ada</div>'}
+    </div>
+    <div class="card"><h3>Latihan terbaru</h3>
+      ${latest.length ? latest.map(n => `<div class="li"><div class="avatar" style="background:var(--yellow-50)">${n.skor >= 75 ? '⭐' : '✏️'}</div><div class="meta"><b>${esc(siswaById(n.siswaId).nama)}</b><span class="small muted">Level ${esc(n.level)} · ${fmtDate(n.tanggal)}</span></div><b class="num">${esc(n.skor)}</b></div>`).join('') : '<div class="empty">Belum ada latihan</div>'}
+    </div>
+  </div>`;
+}
+
+/* ================= DATA SISWA ================= */
+function pgSiswa() {
+  const st = S.f.siswaSt || 'Aktif';
+  return `<div class="card">
+    <div class="card-head">
+      <div class="chips">${['Aktif', 'Cuti', 'Berhenti', 'Semua'].map(x => `<button class="chip ${st === x ? 'on' : ''}" onclick="setF('siswaSt','${x}')">${x} (${x === 'Semua' ? D('Siswa').length : D('Siswa').filter(s => s.status === x).length})</button>`).join('')}</div>
+      <div class="spacer"></div>
+      <input class="input" style="max-width:220px" placeholder="Cari nama / ID…" value="${esc(S.f.q || '')}" oninput="S.f.q=this.value;$('#siswaList').innerHTML=siswaList()">
+      <button class="btn" onclick="formSiswa()">${ic('plus')} Tambah Siswa</button>
+    </div>
+    <div class="table-wrap" id="siswaList">${siswaList()}</div>
+  </div>`;
+}
+function siswaList() {
+  const st = S.f.siswaSt || 'Aktif', q = (S.f.q || '').toLowerCase(), p = thisPeriod();
+  const rows = D('Siswa').filter(s => (st === 'Semua' || s.status === st) && (!q || (s.nama + s.id + s.panggilan).toLowerCase().includes(q))).sort((a, b) => a.id.localeCompare(b.id));
+  if (!rows.length) return '<div class="empty">Belum ada data siswa</div>';
+  return `<table class="t"><thead><tr><th>ID</th><th>Nama</th><th>Level</th><th>Orang tua</th><th>Mulai</th><th>Status</th><th>SPP ${BULAN[+p.slice(5) - 1].slice(0, 3)}</th><th></th></tr></thead><tbody>
+  ${rows.map(s => { const paid = payOf(s.id, p); const billed = billedIn(s, p); return `<tr class="${billed && !paid ? 'unpaid' : ''}">
+    <td class="num"><b>${esc(s.id)}</b></td>
+    <td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.panggilan || '')} · ${s.jk === 'L' ? 'Laki-laki' : 'Perempuan'}${s.tglLahir ? ' · ' + fmtDate(s.tglLahir) : ''}</div></td>
+    <td>${lvBadge(s.level)}</td>
+    <td>${esc(s.ortu || '-')}<div class="small muted">${esc(s.waOrtu || '')}</div></td>
+    <td class="nowrap">${fmtDate(s.tglMulai)}</td><td>${stBadge(s.status)}</td>
+    <td>${!billed ? '<span class="badge b-gray">-</span>' : paid ? '<span class="badge b-green">Lunas</span>' : '<span class="badge b-red">Belum</span>'}</td>
+    <td class="nowrap"><button class="icon-btn" title="Kirim akses portal" onclick="waAkses('${s.id}')">${ic('key')}</button><button class="icon-btn" title="Edit" onclick="formSiswa('${s.id}')">${ic('edit')}</button><button class="icon-btn" title="Hapus" onclick="delSiswa('${s.id}')">${ic('trash')}</button></td>
+  </tr>`; }).join('')}</tbody></table>`;
+}
+function formSiswa(id) {
+  const s = id ? siswaById(id) : { jk: 'P', level: '1', status: 'Aktif', tglMulai: todayStr(), pin: rand4(), kodeOrtu: rand4() };
+  const opt = (arr, v) => arr.map(x => { const [val, lab] = Array.isArray(x) ? x : [x, x]; return `<option value="${val}" ${String(v) === String(val) ? 'selected' : ''}>${lab}</option>`; }).join('');
+  modal(id ? `Edit Siswa — ${esc(s.id)}` : 'Tambah Siswa', `<form id="fSiswa" class="form-grid" onsubmit="event.preventDefault();saveSiswa('${id || ''}')">
+    <div class="field full"><label>Nama lengkap *</label><input class="input" name="nama" required value="${esc(s.nama || '')}"></div>
+    <div class="field"><label>Nama panggilan</label><input class="input" name="panggilan" value="${esc(s.panggilan || '')}"></div>
+    <div class="field"><label>Jenis kelamin</label><select class="input" name="jk">${opt([['P', 'Perempuan'], ['L', 'Laki-laki']], s.jk)}</select></div>
+    <div class="field"><label>Tanggal lahir</label><input class="input" type="date" name="tglLahir" value="${esc(s.tglLahir || '')}"></div>
+    <div class="field"><label>Tanggal mulai les</label><input class="input" type="date" name="tglMulai" value="${esc(s.tglMulai || '')}"></div>
+    <div class="field"><label>Nama orang tua/wali</label><input class="input" name="ortu" value="${esc(s.ortu || '')}"></div>
+    <div class="field"><label>No. WhatsApp orang tua</label><input class="input" name="waOrtu" inputmode="tel" placeholder="08…" value="${esc(s.waOrtu || '')}"></div>
+    <div class="field full"><label>Alamat</label><input class="input" name="alamat" value="${esc(s.alamat || '')}"></div>
+    <div class="field"><label>Level Jarimatika</label><select class="input" name="level">${opt(LEVELS.map(l => [l.n, l.judul]), s.level)}</select></div>
+    <div class="field"><label>Status</label><select class="input" name="status">${opt(['Aktif', 'Cuti', 'Berhenti'], s.status)}</select></div>
+    <div class="field"><label>Nominal SPP khusus</label><input class="input" name="sppNominal" inputmode="numeric" placeholder="Default ${rp(S.settings.nominalSPP)}" value="${esc(s.sppNominal || '')}"></div>
+    <div class="field"><label>PIN login murid</label><input class="input" name="pin" required inputmode="numeric" value="${esc(s.pin || '')}"></div>
+    <div class="field"><label>Kode akses orang tua</label><input class="input" name="kodeOrtu" required inputmode="numeric" value="${esc(s.kodeOrtu || '')}"></div>
+    <div class="field full"><label>Catatan khusus</label><textarea class="input" name="catatan">${esc(s.catatan || '')}</textarea></div>
+  </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fSiswa').requestSubmit()">Simpan</button>`, true);
+}
+async function saveSiswa(id) {
+  const f = formData($('#fSiswa'));
+  try { const r = await saveRow('Siswa', Object.assign(id ? { ...siswaById(id) } : {}, f, id ? { id } : {})); closeModal(); toast(`Data ${r.nama} tersimpan (${r.id})`); renderAdmin(); }
+  catch (e) { toast(e.message, true); }
+}
+function delSiswa(id) {
+  const s = siswaById(id);
+  confirmBox(`Hapus <b>${esc(s.nama)}</b>? Riwayat absensi & SPP tetap tersimpan. Saran: ubah status menjadi <b>Berhenti</b> bila hanya tidak aktif.`, async () => { try { await removeRow('Siswa', id); toast('Siswa dihapus'); renderAdmin(); } catch (e) { toast(e.message, true); } });
+}
+function waAkses(id) {
+  const s = siswaById(id), st = S.settings;
+  openWa(s.waOrtu, `Assalamu'alaikum Bapak/Ibu ${s.ortu || ''},\n\nBerikut akses *Portal ${st.namaLembaga}* untuk ananda ${s.nama}:\n${st.portalUrl ? '\nLink: ' + st.portalUrl + '\n' : ''}\n👨‍👩‍👧 *Portal Orang Tua*\nID Siswa: ${s.id}\nKode Akses: ${s.kodeOrtu}\n(untuk melihat absensi, laporan & tagihan SPP)\n\n🧒 *Portal Murid* (latihan soal)\nID Siswa: ${s.id}\nPIN: ${s.pin}\n\nTerima kasih 🙏`);
+}
+
+/* ================= JADWAL ================= */
+function pgJadwal() {
+  const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  if (D('Jadwal').some(j => j.hari === 'Minggu')) days.push('Minggu');
+  const colors = ['bg-pink', 'bg-yellow', 'bg-green', 'bg-blue', 'bg-purple', 'bg-orange', 'bg-pink'];
+  const today = dayName(todayStr());
+  return `<div class="row"><p class="muted">Jadwal kelas reguler, privat & semiprivat. Klik sesi untuk mengubah.</p><div class="spacer"></div><button class="btn" onclick="formJadwal()">${ic('plus')} Tambah Jadwal</button></div>
+  <div class="days">${days.map((d, i) => { const js = D('Jadwal').filter(j => j.hari === d).sort((a, b) => (a.jamMulai || '').localeCompare(b.jamMulai || '')); return `<div class="day">
+    <h4 class="${colors[i]}">${d}${d === today ? '<span class="badge b-pink" style="margin-left:auto">Hari ini</span>' : ''}</h4>
+    ${js.length ? js.map(j => { const ids = j.siswaIds ? j.siswaIds.split(',').map(x => x.trim()).filter(Boolean) : []; return `<div class="sess" onclick="formJadwal('${j.id}')">
+      <div class="row" style="gap:6px"><span class="time">${ic('clock', '').replace('<svg', '<svg style="width:14px;height:14px;vertical-align:-2px"')} Sesi ${esc(j.sesi)} · ${esc(j.jamMulai)}–${esc(j.jamSelesai)}</span><div class="spacer"></div><span class="badge ${j.tipe === 'Privat' ? 'b-purple' : j.tipe === 'Semiprivat' ? 'b-blue' : 'b-yellow'}">${esc(j.tipe)}</span></div>
+      <div class="small" style="margin-top:4px"><b>${esc(guruById(j.guruId).nama)}</b> · ${ids.length} siswa</div>
+      <div class="small muted">${ids.map(x => esc(siswaById(x).panggilan || siswaById(x).nama)).join(', ') || '-'}</div></div>`; }).join('') : '<div class="small muted" style="padding:6px 4px">Tidak ada sesi</div>'}
+  </div>`; }).join('')}</div>`;
+}
+function formJadwal(id) {
+  const j = id ? D('Jadwal').find(x => x.id === id) : { hari: 'Senin', sesi: '1', jamMulai: '14:00', jamSelesai: '15:00', tipe: 'Reguler', siswaIds: '' };
+  const sel = (j.siswaIds || '').split(',').map(x => x.trim());
+  const opt = (arr, v) => arr.map(x => `<option ${String(v) === String(x) ? 'selected' : ''}>${x}</option>`).join('');
+  modal(id ? 'Edit Jadwal' : 'Tambah Jadwal', `<form id="fJadwal" class="form-grid" onsubmit="event.preventDefault();saveJadwal('${id || ''}')">
+    <div class="field"><label>Hari</label><select class="input" name="hari">${opt(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'], j.hari)}</select></div>
+    <div class="field"><label>Sesi</label><select class="input" name="sesi">${opt([1, 2, 3, 4, 5], j.sesi)}</select></div>
+    <div class="field"><label>Jam mulai</label><input class="input" type="time" name="jamMulai" value="${esc(j.jamMulai)}"></div>
+    <div class="field"><label>Jam selesai</label><input class="input" type="time" name="jamSelesai" value="${esc(j.jamSelesai)}"></div>
+    <div class="field"><label>Tipe kelas</label><select class="input" name="tipe">${opt(['Reguler', 'Privat', 'Semiprivat'], j.tipe)}</select></div>
+    <div class="field"><label>Guru/tentor</label><select class="input" name="guruId">${D('Guru').filter(g => g.status !== 'Nonaktif').map(g => `<option value="${g.id}" ${g.id === j.guruId ? 'selected' : ''}>${esc(g.nama)}</option>`).join('')}</select></div>
+    <div class="field full"><label>Daftar siswa</label><div style="max-height:220px;overflow:auto;border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:4px">
+      ${siswaAktif().map(s => `<label class="row" style="gap:8px;font-weight:600;cursor:pointer"><input type="checkbox" name="sw" value="${s.id}" ${sel.includes(s.id) ? 'checked' : ''}> ${esc(s.nama)}</label>`).join('') || '<span class="muted">Belum ada siswa aktif</span>'}
+    </div></div>
+    <div class="field full"><label>Catatan</label><input class="input" name="catatan" value="${esc(j.catatan || '')}"></div>
+  </form>`, `${id ? `<button class="btn red" style="margin-right:auto" onclick="delJadwal('${id}')">${ic('trash')} Hapus</button>` : ''}<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fJadwal').requestSubmit()">Simpan</button>`, true);
+}
+async function saveJadwal(id) {
+  const f = formData($('#fJadwal')); delete f.sw;
+  f.siswaIds = $$('#fJadwal input[name=sw]:checked').map(x => x.value).join(',');
+  if (!D('Guru').length) return toast('Tambahkan data guru dulu (menu Kehadiran Guru → Data Guru)', true);
+  try { await saveRow('Jadwal', Object.assign(id ? { id } : {}, f)); closeModal(); toast('Jadwal tersimpan'); renderPage(); } catch (e) { toast(e.message, true); }
+}
+function delJadwal(id) { confirmBox('Hapus jadwal ini?', async () => { await removeRow('Jadwal', id); toast('Jadwal dihapus'); renderPage(); }); }
+
+/* ================= ABSENSI SISWA ================= */
+function pgAbsensi() {
+  const t = S.tab.abs || 'input';
+  return tabs('abs', [['input', 'Input Harian'], ['rekap', 'Rekap Bulanan']], 'input') + (t === 'input' ? absInput() : absRekap());
+}
+function absInput() {
+  const date = S.f.absDate || todayStr(), hari = dayName(date);
+  const sesi = D('Jadwal').filter(j => j.hari === hari).sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+  const js = S.f.absJadwal || 'all';
+  const jad = sesi.find(j => j.id === js);
+  let list = siswaAktif();
+  if (jad) { const ids = jad.siswaIds.split(',').map(x => x.trim()); list = list.filter(s => ids.includes(s.id)); }
+  const existing = D('Absensi').filter(a => a.tanggal === date);
+  if (!S.absDraft || S.absDraft._date !== date) {
+    S.absDraft = { _date: date };
+    existing.forEach(a => S.absDraft[a.siswaId] = { status: a.status, catatan: a.catatan, id: a.id });
+  }
+  const cnt = k => list.filter(s => (S.absDraft[s.id] || {}).status === k).length;
+  return `<div class="card">
+    <div class="card-head">
+      <div class="field"><label>Tanggal</label><input class="input" type="date" value="${date}" onchange="S.f.absJadwal='all';setF('absDate',this.value)"></div>
+      <div class="field"><label>Sesi (${hari})</label><select class="input" onchange="setF('absJadwal',this.value)"><option value="all">Semua siswa aktif</option>${sesi.map(j => `<option value="${j.id}" ${js === j.id ? 'selected' : ''}>Sesi ${esc(j.sesi)} · ${esc(j.jamMulai)} · ${esc(guruById(j.guruId).nama)}</option>`).join('')}</select></div>
+      <div class="field"><label>Pengajar</label><select class="input" id="absGuru">${D('Guru').map(g => `<option value="${g.id}" ${jad && jad.guruId === g.id ? 'selected' : ''}>${esc(g.nama)}</option>`).join('')}</select></div>
+      <div class="spacer"></div>
+      <button class="btn ghost" onclick="absAll()">✓ Semua Hadir</button>
+    </div>
+    <div class="row small" style="margin-bottom:6px"><span class="badge b-green">Hadir ${cnt('Hadir')}</span><span class="badge b-blue">Izin ${cnt('Izin')}</span><span class="badge b-yellow">Sakit ${cnt('Sakit')}</span><span class="badge b-red">Alpa ${cnt('Alpa')}</span><span class="muted">${existing.length ? '· sudah ada data tersimpan untuk tanggal ini' : ''}</span></div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>
+      ${list.map(s => { const d = S.absDraft[s.id] || {}; return `<tr><td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.id)} · Level ${esc(s.level)}</div></td>
+      <td><div class="seg">${Object.entries(ST).map(([k, v]) => `<button class="${k} ${d.status === v ? 'on' : ''}" title="${v}" onclick="absSet('${s.id}','${v}')">${k}</button>`).join('')}</div></td>
+      <td><input class="input" style="min-width:150px;padding:7px 10px" placeholder="opsional" value="${esc(d.catatan || '')}" onchange="absNote('${s.id}',this.value)"></td></tr>`; }).join('') || '<tr><td colspan="3"><div class="empty">Tidak ada siswa</div></td></tr>'}
+    </tbody></table></div>
+    <div class="row" style="margin-top:14px"><span class="small muted">H = Hadir · I = Izin · S = Sakit · A = Tanpa keterangan</span><div class="spacer"></div><button class="btn" onclick="absSave()">Simpan Absensi</button></div>
+  </div>`;
+}
+function absSet(id, v) { S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { status: v }); renderPage(); }
+function absNote(id, v) { S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { catatan: v }); }
+function absAll() { const sesi = D('Jadwal').find(j => j.id === S.f.absJadwal); let list = siswaAktif(); if (sesi) { const ids = sesi.siswaIds.split(','); list = list.filter(s => ids.includes(s.id)); } list.forEach(s => { if (!(S.absDraft[s.id] || {}).status) absSetQuiet(s.id, 'Hadir'); }); renderPage(); }
+function absSetQuiet(id, v) { S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { status: v }); }
+async function absSave() {
+  const date = S.f.absDate || todayStr(), guruId = ($('#absGuru') || {}).value || '';
+  const rows = Object.entries(S.absDraft).filter(([k, v]) => k !== '_date' && v.status).map(([sid, v]) => ({ id: v.id || '', tanggal: date, siswaId: sid, status: v.status, guruId, catatan: v.catatan || '' }));
+  if (!rows.length) return toast('Belum ada status yang dipilih', true);
+  rows.forEach(r => { if (!r.id) delete r.id; });
+  try { const saved = await saveRows('Absensi', rows); saved.forEach(r => S.absDraft[r.siswaId].id = r.id); toast(`Absensi ${fmtDate(date)} tersimpan (${saved.length} siswa)`); renderPage(); } catch (e) { toast(e.message, true); }
+}
+function absRekap() {
+  const p = S.f.absP || thisPeriod();
+  const rows = D('Siswa').filter(s => s.status === 'Aktif' || D('Absensi').some(a => a.siswaId === s.id && a.tanggal.startsWith(p))).sort((a, b) => a.nama.localeCompare(b.nama)).map(s => ({ s, c: absMonth(s.id, p) }));
+  return `<div class="card"><div class="card-head"><select class="input" style="max-width:200px" onchange="setF('absP',this.value)">${monthOptions(p)}</select><div class="spacer"></div><button class="btn ghost" onclick="csvAbs('${p}')">${ic('download')} Unduh Excel (CSV)</button></div>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th><th class="c">Hadir</th><th class="c">Izin</th><th class="c">Sakit</th><th class="c">Alpa</th><th class="c">Pertemuan</th><th class="c">% Hadir</th></tr></thead><tbody>
+  ${rows.map(({ s, c }) => `<tr style="cursor:pointer" onclick="absDetail('${s.id}','${p}')"><td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.id)}</div></td><td class="c num cell-ok">${c.Hadir}</td><td class="c num">${c.Izin}</td><td class="c num">${c.Sakit}</td><td class="c num ${c.Alpa ? 'cell-no' : ''}">${c.Alpa}</td><td class="c num"><b>${c.total}</b></td><td class="c num">${c.total ? Math.round(c.Hadir / c.total * 100) + '%' : '-'}</td></tr>`).join('') || '<tr><td colspan="7"><div class="empty">Belum ada data</div></td></tr>'}
+  </tbody></table></div></div>`;
+}
+function absDetail(sid, p) {
+  const c = absMonth(sid, p); const s = siswaById(sid);
+  modal(`${esc(s.nama)} — ${fmtPeriod(p)}`, c.rows.length ? `<table class="t"><tbody>${c.rows.sort((a, b) => a.tanggal.localeCompare(b.tanggal)).map(r => `<tr><td>${dayName(r.tanggal)}, ${fmtDate(r.tanggal)}</td><td><span class="badge ${{ Hadir: 'b-green', Izin: 'b-blue', Sakit: 'b-yellow', Alpa: 'b-red' }[r.status]}">${r.status}</span></td><td class="small muted">${esc(r.catatan || '')}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">Belum ada absensi</div>');
+}
+function csvAbs(p) {
+  const rows = [['ID', 'Nama', 'Hadir', 'Izin', 'Sakit', 'Alpa', 'Pertemuan']];
+  siswaAktif().forEach(s => { const c = absMonth(s.id, p); rows.push([s.id, s.nama, c.Hadir, c.Izin, c.Sakit, c.Alpa, c.total]); });
+  downloadFile(`Rekap-Absensi-${p}.csv`, toCSV(rows));
+}
+
+/* ================= SPP ================= */
+function pgSPP() {
+  const t = S.tab.spp || 'tagihan';
+  return `<div class="row">${tabs('spp', [['tagihan', 'Tagihan Bulanan'], ['rekap', 'Rekap Lunas / Belum'], ['riwayat', 'Riwayat Pembayaran']], 'tagihan')}<div class="spacer"></div><button class="btn" onclick="formBayar()">${ic('plus')} Catat Pembayaran</button></div>` +
+    (t === 'tagihan' ? sppTagihan() : t === 'rekap' ? sppRekap() : sppRiwayat());
+}
+function sppTagihan() {
+  const p = S.f.sppP || thisPeriod(), flt = S.f.sppFilter || 'belum';
+  const billed = siswaAktif().filter(s => billedIn(s, p));
+  const paid = D('SPP').filter(x => x.periode === p);
+  const unpaid = billed.filter(s => !payOf(s.id, p));
+  const extra = paid.filter(x => !billed.find(s => s.id === x.siswaId)).map(x => siswaById(x.siswaId));
+  let rows = billed.concat(extra);
+  if (flt === 'belum') rows = unpaid; else if (flt === 'lunas') rows = rows.filter(s => payOf(s.id, p));
+  rows.sort((a, b) => (!!payOf(a.id, p) - !!payOf(b.id, p)) || a.nama.localeCompare(b.nama));
+  const totalTag = sum(billed, s => sppNominal(s, S.settings));
+  return `<div class="grid g3">
+    <div class="stat bg-blue"><span class="lbl">Total tagihan ${fmtPeriod(p)}</span><span class="val num">${rp(totalTag)}</span><span class="sub">${billed.length} siswa aktif</span></div>
+    <div class="stat bg-green"><span class="lbl">Sudah bayar</span><span class="val num" style="color:#0E7A41">${rp(sum(paid, x => x.nominal))}</span><span class="sub">${paid.length} siswa lunas</span></div>
+    <div class="stat bg-red"><span class="lbl" style="color:#B4282D">Belum bayar</span><span class="val num" style="color:var(--red)">${rp(sum(unpaid, s => sppNominal(s, S.settings)))}</span><span class="sub">${unpaid.length} siswa · jatuh tempo ${fmtDate(dueDate(p, S.settings))}</span></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <select class="input" style="max-width:190px" onchange="setF('sppP',this.value)">${monthOptions(p)}</select>
+      <div class="chips">${[['belum', `Belum bayar (${unpaid.length})`], ['lunas', `Lunas (${paid.length})`], ['semua', 'Semua']].map(([k, l]) => `<button class="chip ${flt === k ? 'on' : ''}" onclick="setF('sppFilter','${k}')">${l}</button>`).join('')}</div>
+      <div class="spacer"></div>
+      ${unpaid.length ? `<button class="btn wa" onclick="massReminder('${p}')">${ic('wa')} Kirim Pengingat (${unpaid.length})</button>` : ''}
+    </div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th><th>Orang tua</th><th class="r">Nominal</th><th>Status</th><th>Pembayaran</th><th></th></tr></thead><tbody>
+    ${rows.map(s => { const x = payOf(s.id, p); return `<tr class="${x ? '' : 'unpaid'}">
+      <td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.id)}</div></td>
+      <td>${esc(s.ortu || '-')}<div class="small muted">${esc(s.waOrtu || '')}</div></td>
+      <td class="r num"><b>${rp(x ? x.nominal : sppNominal(s, S.settings))}</b></td>
+      <td>${x ? '<span class="badge b-green">✓ Lunas</span>' : '<span class="badge b-red">● Belum bayar</span>'}</td>
+      <td class="small">${x ? `${fmtDate(x.tanggalBayar)} · ${esc(x.metode)}` : '<span class="muted">—</span>'}</td>
+      <td class="nowrap r">${x
+        ? `<button class="btn sm ghost" onclick="showInvoice('${s.id}','${p}')">${ic('file')} Kwitansi</button><button class="icon-btn" title="Kirim bukti WA" onclick="waInvoice('${s.id}','${p}')">${ic('wa')}</button><button class="icon-btn" title="Batalkan" onclick="delBayar('${x.id}')">${ic('trash')}</button>`
+        : `<button class="btn sm green" onclick="formBayar('${s.id}','${p}')">Catat Bayar</button> <button class="btn sm ghost" onclick="showInvoice('${s.id}','${p}')">${ic('file')} Invoice</button><button class="icon-btn" title="Kirim invoice WA" onclick="waInvoice('${s.id}','${p}')">${ic('wa')}</button>`}</td>
+    </tr>`; }).join('') || `<tr><td colspan="6"><div class="empty">${flt === 'belum' ? '🎉 Semua siswa sudah membayar' : 'Tidak ada data'}</div></td></tr>`}
+    </tbody></table></div>
+  </div>`;
+}
+function showInvoice(sid, p) {
+  const s = siswaById(sid), x = payOf(sid, p);
+  modal(x ? 'Kwitansi Pembayaran' : 'Invoice Tagihan SPP', invoiceHtml(s, p, x, S.settings),
+    `<button class="btn ghost" onclick="printHtml($('#modal .inv').outerHTML,'${x ? 'Kwitansi' : 'Invoice'} ${esc(s.nama)}')">${ic('print')} Cetak / PDF</button>
+     <button class="btn wa" onclick="waInvoice('${sid}','${p}')">${ic('wa')} Kirim WA</button>
+     ${x ? '' : `<button class="btn green" onclick="formBayar('${sid}','${p}')">Catat Bayar</button>`}`, true);
+}
+function waInvoice(sid, p) { const s = siswaById(sid); openWa(s.waOrtu, invoiceWaText(s, p, payOf(sid, p), S.settings)); }
+function massReminder(p) {
+  const list = unpaidFor(p);
+  modal(`Pengingat SPP — ${fmtPeriod(p)}`, `<p class="small muted" style="margin-bottom:10px">Klik tombol WA satu per satu untuk mengirim invoice ke orang tua. Baris yang sudah diklik akan ditandai ✓.</p>
+    ${list.map(s => `<div class="li"><div class="meta"><b>${esc(s.nama)}</b><span class="small muted">${esc(s.ortu || '-')} · ${esc(s.waOrtu || 'WA belum diisi')} · ${rp(sppNominal(s, S.settings))}</span></div><button class="btn sm wa" onclick="waInvoice('${s.id}','${p}');this.textContent='✓ Terkirim';this.classList.add('ghost');this.classList.remove('wa')">${ic('wa')} Kirim</button></div>`).join('')}`);
+}
+function formBayar(sid, p) {
+  p = p || S.f.sppP || thisPeriod();
+  const s = sid ? siswaById(sid) : null;
+  modal('Catat Pembayaran SPP', `<form id="fBayar" class="form-grid" onsubmit="event.preventDefault();saveBayar()">
+    <div class="field full"><label>Siswa</label>${s ? `<input type="hidden" name="siswaId" value="${s.id}"><div class="input" style="background:#FAF6F9"><b>${esc(s.nama)}</b> · ${esc(s.id)}</div>` : `<select class="input" name="siswaId" required onchange="const x=siswaById(this.value);$('#fBayar [name=nominal]').value=sppNominal(x,S.settings)"><option value="">— pilih siswa —</option>${D('Siswa').filter(x => x.status !== 'Berhenti').sort((a, b) => a.nama.localeCompare(b.nama)).map(x => `<option value="${x.id}">${esc(x.nama)} (${x.id})</option>`).join('')}</select>`}</div>
+    <div class="field"><label>Periode (bulan)</label><select class="input" name="periode">${monthOptions(p, 12, 3)}</select></div>
+    <div class="field"><label>Nominal</label><input class="input" name="nominal" inputmode="numeric" required value="${s ? sppNominal(s, S.settings) : S.settings.nominalSPP}"></div>
+    <div class="field"><label>Tanggal bayar</label><input class="input" type="date" name="tanggalBayar" required value="${todayStr()}"></div>
+    <div class="field"><label>Metode</label><select class="input" name="metode"><option>Tunai</option><option>Transfer</option><option>QRIS</option></select></div>
+    <div class="field full"><label>Catatan</label><input class="input" name="catatan" placeholder="opsional"></div>
+  </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn green" onclick="$('#fBayar').requestSubmit()">Simpan Pembayaran</button>`);
+}
+async function saveBayar() {
+  const f = formData($('#fBayar'));
+  if (!f.siswaId) return toast('Pilih siswa', true);
+  if (payOf(f.siswaId, f.periode)) return toast(`SPP ${fmtPeriod(f.periode)} untuk siswa ini sudah tercatat lunas`, true);
+  f.nominal = String(f.nominal).replace(/\D/g, '');
+  try { await saveRow('SPP', f); toast('Pembayaran tersimpan ✓'); renderAdmin(); showInvoice(f.siswaId, f.periode); } catch (e) { toast(e.message, true); }
+}
+function delBayar(id) { confirmBox('Batalkan/hapus catatan pembayaran ini? Status akan kembali menjadi belum bayar.', async () => { await removeRow('SPP', id); toast('Pembayaran dihapus'); renderAdmin(); }); }
+function sppRekap() {
+  const y = S.f.sppY || thisPeriod().slice(0, 4), cur = thisPeriod();
+  const months = Array.from({ length: 12 }, (_, i) => `${y}-${pad(i + 1)}`);
+  const list = D('Siswa').filter(s => s.status === 'Aktif' || D('SPP').some(x => x.siswaId === s.id && x.periode.startsWith(y))).sort((a, b) => a.nama.localeCompare(b.nama));
+  let grand = 0, grandN = 0, paidTot = 0;
+  const body = list.map(s => {
+    let n = 0, tot = 0;
+    const cells = months.map(m => {
+      const x = payOf(s.id, m);
+      if (x) { paidTot += +x.nominal || 0; return `<td class="c cell-ok" title="${fmtDate(x.tanggalBayar)} · ${rp(x.nominal)}">✓</td>`; }
+      if (billedIn(s, m) && m <= cur) { n++; tot += sppNominal(s, S.settings); return `<td class="c cell-no" title="Belum bayar">✗</td>`; }
+      return `<td class="c cell-na">·</td>`;
+    }).join('');
+    grand += tot; grandN += n;
+    return `<tr class="${n ? 'unpaid' : ''}"><td class="nowrap"><b>${esc(s.nama)}</b></td>${cells}<td class="c num">${n ? `<b style="color:var(--red)">${n} bln</b>` : '<span class="cell-ok">Lunas</span>'}</td><td class="r num">${n ? rp(tot) : '-'}</td></tr>`;
+  }).join('');
+  return `<div class="grid g3"><div class="stat bg-green"><span class="lbl">Terbayar tahun ${y}</span><span class="val num">${rp(paidTot)}</span></div>
+    <div class="stat bg-red"><span class="lbl" style="color:#B4282D">Total tunggakan</span><span class="val num" style="color:var(--red)">${rp(grand)}</span><span class="sub">${grandN} bulan belum dibayar</span></div>
+    <div class="stat bg-yellow"><span class="lbl">Siswa menunggak</span><span class="val num">${list.filter(s => months.some(m => billedIn(s, m) && m <= cur && !payOf(s.id, m))).length}</span><span class="sub">dari ${list.length} siswa</span></div></div>
+  <div class="card"><div class="card-head"><select class="input" style="max-width:130px" onchange="setF('sppY',this.value)">${[+y - 1, +y, +y + 1].map(v => `<option ${v == y ? 'selected' : ''}>${v}</option>`).join('')}</select><span class="small muted">✓ lunas · <span style="color:var(--red)">✗ belum bayar</span> · · belum ditagih</span><div class="spacer"></div><button class="btn ghost" onclick="csvSpp('${y}')">${ic('download')} Unduh Excel (CSV)</button></div>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th>${months.map(m => `<th class="c">${BULAN[+m.slice(5) - 1].slice(0, 3)}</th>`).join('')}<th class="c">Tunggakan</th><th class="r">Jumlah</th></tr></thead><tbody>${body || '<tr><td colspan="15"><div class="empty">Belum ada data</div></td></tr>'}</tbody></table></div></div>`;
+}
+function csvSpp(y) {
+  const months = Array.from({ length: 12 }, (_, i) => `${y}-${pad(i + 1)}`), cur = thisPeriod();
+  const rows = [['ID', 'Nama', ...months.map(m => fmtPeriod(m)), 'Bulan Tunggakan', 'Total Tunggakan']];
+  D('Siswa').filter(s => s.status === 'Aktif').forEach(s => {
+    let n = 0, t = 0;
+    const c = months.map(m => { const x = payOf(s.id, m); if (x) return 'LUNAS ' + x.nominal; if (billedIn(s, m) && m <= cur) { n++; t += sppNominal(s, S.settings); return 'BELUM'; } return '-'; });
+    rows.push([s.id, s.nama, ...c, n, t]);
+  });
+  downloadFile(`Rekap-SPP-${y}.csv`, toCSV(rows));
+}
+function sppRiwayat() {
+  const q = (S.f.rq || '').toLowerCase();
+  const rows = [...D('SPP')].filter(x => !q || siswaById(x.siswaId).nama.toLowerCase().includes(q)).sort((a, b) => (b.tanggalBayar || '').localeCompare(a.tanggalBayar || ''));
+  return `<div class="card"><div class="card-head"><input class="input" style="max-width:240px" placeholder="Cari nama siswa…" value="${esc(S.f.rq || '')}" onchange="setF('rq',this.value)"><div class="spacer"></div><span class="muted small">${rows.length} transaksi · ${rp(sum(rows, x => x.nominal))}</span></div>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Tanggal</th><th>No. Kwitansi</th><th>Siswa</th><th>Periode</th><th>Metode</th><th class="r">Nominal</th><th></th></tr></thead><tbody>
+  ${rows.slice(0, 300).map(x => `<tr><td class="nowrap">${fmtDate(x.tanggalBayar)}</td><td class="small num">${esc(x.noInvoice)}</td><td><b>${esc(siswaById(x.siswaId).nama)}</b></td><td>${fmtPeriod(x.periode)}</td><td>${esc(x.metode)}</td><td class="r num"><b>${rp(x.nominal)}</b></td><td class="nowrap"><button class="icon-btn" onclick="showInvoice('${x.siswaId}','${x.periode}')">${ic('file')}</button><button class="icon-btn" onclick="delBayar('${x.id}')">${ic('trash')}</button></td></tr>`).join('') || '<tr><td colspan="7"><div class="empty">Belum ada pembayaran</div></td></tr>'}
+  </tbody></table></div></div>`;
+}
+
+/* ================= BELAJAR & LEVEL ================= */
+function pgBelajar() {
+  const t = S.tab.bel || 'level';
+  return tabs('bel', [['level', 'Perkembangan Level'], ['hasil', 'Hasil Latihan'], ['soal', 'Bank Soal']], 'level') + (t === 'level' ? belLevel() : t === 'hasil' ? belHasil() : belSoal());
+}
+function belLevel() {
+  const counts = [1, 2, 3, 4].map(l => siswaAktif().filter(s => +s.level === l).length);
+  return `<div class="grid g4">${LEVELS.map((l, i) => `<div class="stat" style="background:${l.bg}"><span class="lbl">${l.judul}</span><span class="val num">${counts[i]}</span><span class="sub">${l.desc}</span></div>`).join('')}</div>
+  <div class="card"><h3>Perkembangan jurus / level siswa</h3><p class="small muted" style="margin:-4px 0 10px">Ganti level langsung dari kolom Level. Rekomendasi naik level muncul bila rata-rata skor ≥ 85 dari minimal 3 latihan di level saat ini.</p>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th><th>Level</th><th class="c">Latihan</th><th class="c">Rata-rata (level ini)</th><th class="c">Skor terakhir</th><th class="c">⭐</th><th>Rekomendasi</th></tr></thead><tbody>
+  ${siswaAktif().map(s => { const n = D('Nilai').filter(x => x.siswaId === s.id); const nl = n.filter(x => +x.level === +s.level); const avg = nl.length ? Math.round(sum(nl, x => x.skor) / nl.length) : null; const last = [...n].sort((a, b) => b.tanggal.localeCompare(a.tanggal))[0];
+    const ready = avg !== null && avg >= 85 && nl.length >= 3 && +s.level < 4;
+    return `<tr><td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.id)}</div></td>
+    <td><select class="input" style="padding:6px 10px;width:auto" onchange="setLevel('${s.id}',this.value)">${LEVELS.map(l => `<option value="${l.n}" ${+s.level === l.n ? 'selected' : ''}>Level ${l.n}</option>`).join('')}</select></td>
+    <td class="c num">${n.length}</td><td class="c num">${avg === null ? '-' : `<b>${avg}</b>`}</td><td class="c num">${last ? `${last.skor} <span class="small muted">(L${last.level})</span>` : '-'}</td><td class="c num">${starTotal(s.id)}</td>
+    <td>${ready ? `<button class="btn sm yellow" onclick="setLevel('${s.id}',${+s.level + 1})">⬆ Naikkan ke Level ${+s.level + 1}</button>` : '<span class="small muted">—</span>'}</td></tr>`; }).join('') || '<tr><td colspan="7"><div class="empty">Belum ada siswa aktif</div></td></tr>'}
+  </tbody></table></div></div>`;
+}
+async function setLevel(id, lv) { const s = siswaById(id); try { await saveRow('Siswa', { ...s, level: String(lv) }); toast(`${s.nama} sekarang Level ${lv}`); renderPage(); } catch (e) { toast(e.message, true); } }
+function belHasil() {
+  const sid = S.f.hSid || '', lv = S.f.hLv || '';
+  const rows = [...D('Nilai')].filter(x => (!sid || x.siswaId === sid) && (!lv || x.level == lv)).sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+  return `<div class="card"><div class="card-head">
+    <select class="input" style="max-width:240px" onchange="setF('hSid',this.value)"><option value="">Semua siswa</option>${D('Siswa').map(s => `<option value="${s.id}" ${sid === s.id ? 'selected' : ''}>${esc(s.nama)}</option>`).join('')}</select>
+    <select class="input" style="max-width:140px" onchange="setF('hLv',this.value)"><option value="">Semua level</option>${[1, 2, 3, 4].map(l => `<option ${lv == l ? 'selected' : ''} value="${l}">Level ${l}</option>`).join('')}</select>
+    <div class="spacer"></div><span class="small muted">${rows.length} latihan · rata-rata ${rows.length ? Math.round(sum(rows, x => x.skor) / rows.length) : '-'}</span></div>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Tanggal</th><th>Siswa</th><th>Level</th><th class="c">Benar</th><th class="c">Skor</th><th class="c">Waktu</th><th class="c">Bintang</th></tr></thead><tbody>
+  ${rows.slice(0, 300).map(x => `<tr><td class="nowrap">${fmtDate(x.tanggal)}</td><td><b>${esc(siswaById(x.siswaId).nama)}</b></td><td>${lvBadge(x.level)}</td><td class="c num">${esc(x.benar)}/${esc(x.total)}</td><td class="c num"><b style="color:${+x.skor >= 75 ? 'var(--green)' : +x.skor >= 60 ? 'var(--yellow-d)' : 'var(--red)'}">${esc(x.skor)}</b></td><td class="c num">${Math.floor(x.durasi / 60)}:${pad(x.durasi % 60)}</td><td class="c">${'⭐'.repeat(+x.bintang || 0) || '-'}</td></tr>`).join('') || '<tr><td colspan="7"><div class="empty">Belum ada hasil latihan</div></td></tr>'}
+  </tbody></table></div></div>`;
+}
+function belSoal() {
+  const lv = S.f.sLv || '1';
+  const rows = D('Soal').filter(x => x.level == lv);
+  const L = LEVELS[+lv - 1];
+  return `<div class="card" style="background:${L.bg}"><div class="row"><div class="avatar" style="width:44px;height:44px;background:${L.color};color:#fff;font-size:20px">${lv}</div><div style="flex:1;min-width:200px"><h3 style="margin:0">${L.judul}</h3><div class="small">${L.desc} · <b>Tips jurus:</b> ${L.tip}</div></div></div></div>
+  <div class="card"><div class="card-head"><div class="chips">${LEVELS.map(l => `<button class="chip ${lv == l.n ? 'on' : ''}" onclick="setF('sLv','${l.n}')">Level ${l.n} (${D('Soal').filter(x => x.level == l.n).length})</button>`).join('')}</div></div>
+  <p class="small muted" style="margin-bottom:12px">Setiap latihan murid berisi 10 soal: maksimal 5 diambil acak dari bank soal ini, sisanya dibuat otomatis sesuai level. Bank soal boleh kosong.</p>
+  <form class="row" onsubmit="event.preventDefault();addSoal('${lv}',this)" style="margin-bottom:12px">
+    <input class="input" name="soal" placeholder="Soal, contoh: 7 + 8  atau  6 × 9" required style="flex:2;min-width:180px">
+    <input class="input" name="jawaban" placeholder="Jawaban" required inputmode="numeric" style="flex:1;min-width:100px">
+    <button class="btn">${ic('plus')} Tambah</button></form>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Soal</th><th>Jawaban</th><th>Aktif</th><th></th></tr></thead><tbody>
+  ${rows.map(x => `<tr><td style="font-family:var(--font-h);font-size:18px">${esc(x.soal)}</td><td class="num"><b>${esc(x.jawaban)}</b></td><td><button class="badge ${x.aktif === 'Tidak' ? 'b-gray' : 'b-green'}" onclick="toggleSoal('${x.id}')">${x.aktif === 'Tidak' ? 'Nonaktif' : 'Aktif'}</button></td><td class="r"><button class="icon-btn" onclick="delSoal('${x.id}')">${ic('trash')}</button></td></tr>`).join('') || '<tr><td colspan="4"><div class="empty">Belum ada soal manual di level ini — latihan tetap jalan dengan soal otomatis.</div></td></tr>'}
+  </tbody></table></div>
+  <div style="margin-top:14px"><b class="small">Contoh soal otomatis level ini:</b> <span class="small muted">${Array.from({ length: 6 }, () => genSoal(+lv).q).join(' · ')}</span></div></div>`;
+}
+async function addSoal(lv, form) { const f = formData(form); try { await saveRow('Soal', { level: lv, soal: f.soal.replace(/x/gi, '×').replace(/:/g, '÷'), jawaban: f.jawaban, aktif: 'Ya' }); toast('Soal ditambahkan'); renderPage(); } catch (e) { toast(e.message, true); } }
+async function toggleSoal(id) { const x = D('Soal').find(s => s.id === id); await saveRow('Soal', { ...x, aktif: x.aktif === 'Tidak' ? 'Ya' : 'Tidak' }); renderPage(); }
+function delSoal(id) { confirmBox('Hapus soal ini?', async () => { await removeRow('Soal', id); renderPage(); }); }
+
+/* ================= BINTANG & REWARD ================= */
+function pgBintang() {
+  const list = siswaAktif().map(s => ({ s, t: starTotal(s.id) })).sort((a, b) => b.t - a.t);
+  const hist = [...D('Bintang')].sort((a, b) => b.tanggal.localeCompare(a.tanggal)).slice(0, 60);
+  return `<div class="grid g2">
+  <div class="card"><div class="card-head"><h3>🏆 Papan bintang</h3><div class="spacer"></div><button class="btn sm yellow" onclick="formBintang()">${ic('star')} Beri Bintang</button></div>
+    ${list.map(({ s, t }, i) => `<div class="li"><div class="avatar" style="background:${i < 3 ? 'var(--yellow)' : 'var(--pink-50)'}">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</div><div class="meta"><b>${esc(s.nama)}</b><span class="small muted">Level ${esc(s.level)}</span></div><span class="star-pill" style="font-size:15px;padding:4px 11px;box-shadow:none">⭐ ${t}</span>
+      <button class="icon-btn" title="Beri bintang" onclick="formBintang('${s.id}')">${ic('plus')}</button><button class="icon-btn" title="Tukar hadiah" onclick="formBintang('${s.id}','Tukar')">${ic('gift')}</button></div>`).join('') || '<div class="empty">Belum ada siswa</div>'}
+  </div>
+  <div class="card"><h3>Riwayat bintang & penukaran</h3>
+    ${hist.map(b => `<div class="li"><div class="avatar" style="background:${+b.jumlah < 0 ? 'var(--purple-50)' : 'var(--yellow-50)'}">${+b.jumlah < 0 ? '🎁' : '⭐'}</div><div class="meta"><b>${esc(siswaById(b.siswaId).nama)}</b><span class="small muted">${esc(b.keterangan)} · ${fmtDate(b.tanggal)}</span></div><b class="num" style="color:${+b.jumlah < 0 ? 'var(--purple)' : 'var(--yellow-d)'}">${+b.jumlah > 0 ? '+' : ''}${esc(b.jumlah)}</b><button class="icon-btn" onclick="delBintang('${b.id}')">${ic('trash')}</button></div>`).join('') || '<div class="empty">Belum ada riwayat</div>'}
+  </div></div>`;
+}
+function formBintang(sid, tipe = 'Bonus') {
+  const tukar = tipe === 'Tukar';
+  modal(tukar ? '🎁 Tukar Bintang dengan Hadiah' : '⭐ Beri Bintang', `<form id="fBin" class="form-grid" onsubmit="event.preventDefault();saveBintang('${tipe}')">
+    <div class="field full"><label>Siswa</label><select class="input" name="siswaId" required>${siswaAktif().map(s => `<option value="${s.id}" ${s.id === sid ? 'selected' : ''}>${esc(s.nama)} — saldo ⭐ ${starTotal(s.id)}</option>`).join('')}</select></div>
+    <div class="field"><label>Jumlah bintang</label><input class="input" type="number" min="1" name="jumlah" required value="${tukar ? 10 : 1}"></div>
+    <div class="field"><label>Tanggal</label><input class="input" type="date" name="tanggal" value="${todayStr()}"></div>
+    <div class="field full"><label>${tukar ? 'Hadiah yang ditukar' : 'Alasan'}</label><input class="input" name="keterangan" required placeholder="${tukar ? 'contoh: Pensil warna' : 'contoh: Rajin hadir, juara kuis'}"></div>
+  </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn yellow" onclick="$('#fBin').requestSubmit()">Simpan</button>`);
+}
+async function saveBintang(tipe) {
+  const f = formData($('#fBin')); let j = Math.abs(+f.jumlah || 0);
+  if (!j) return toast('Jumlah tidak valid', true);
+  if (tipe === 'Tukar') { if (j > starTotal(f.siswaId)) return toast('Saldo bintang tidak cukup', true); j = -j; f.keterangan = 'Tukar: ' + f.keterangan; }
+  try { await saveRow('Bintang', { ...f, jumlah: String(j), tipe }); closeModal(); toast('Tersimpan'); renderPage(); } catch (e) { toast(e.message, true); }
+}
+function delBintang(id) { confirmBox('Hapus catatan bintang ini?', async () => { await removeRow('Bintang', id); renderPage(); }); }
+
+/* ================= LAPORAN BULANAN ================= */
+function lapAuto(s, p) {
+  const c = absMonth(s.id, p);
+  const n = D('Nilai').filter(x => x.siswaId === s.id && x.tanggal.startsWith(p));
+  const b = sum(D('Bintang').filter(x => x.siswaId === s.id && x.tanggal.startsWith(p) && +x.jumlah > 0), x => x.jumlah);
+  return { level: s.level, hadir: String(c.Hadir), pertemuan: String(c.total || S.settings.pertemuanPerBulan || 8), rataNilai: n.length ? String(Math.round(sum(n, x => x.skor) / n.length)) : '', bintang: String(b) };
+}
+function pgLaporan() {
+  const p = S.f.lapP || thisPeriod();
+  const list = siswaAktif();
+  const done = list.filter(s => D('Laporan').some(l => l.siswaId === s.id && l.periode === p)).length;
+  return `<div class="card"><div class="card-head"><select class="input" style="max-width:200px" onchange="setF('lapP',this.value)">${monthOptions(p)}</select><span class="badge ${done === list.length && list.length ? 'b-green' : 'b-yellow'}">${done}/${list.length} laporan dibuat</span><div class="spacer"></div><span class="small muted">Kehadiran, nilai & bintang terisi otomatis.</span></div>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th><th class="c">Kehadiran</th><th class="c">Rata nilai</th><th class="c">⭐ bulan ini</th><th>Status</th><th></th></tr></thead><tbody>
+  ${list.map(s => { const l = D('Laporan').find(x => x.siswaId === s.id && x.periode === p); const a = l || lapAuto(s, p); return `<tr>
+    <td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.id)} · Level ${esc(a.level)}</div></td>
+    <td class="c num">${esc(a.hadir)}/${esc(a.pertemuan)}</td><td class="c num">${esc(a.rataNilai || '-')}</td><td class="c num">${esc(a.bintang)}</td>
+    <td>${l ? '<span class="badge b-green">Sudah dibuat</span>' : '<span class="badge b-gray">Belum</span>'}</td>
+    <td class="nowrap r">${l ? `<button class="icon-btn" title="Lihat / cetak" onclick="viewLaporan('${l.id}')">${ic('print')}</button><button class="icon-btn" title="Kirim WA" onclick="waLaporan('${l.id}')">${ic('wa')}</button><button class="btn sm ghost" onclick="formLaporan('${s.id}','${p}')">Edit</button>` : `<button class="btn sm" onclick="formLaporan('${s.id}','${p}')">Buat laporan</button>`}</td></tr>`; }).join('') || '<tr><td colspan="6"><div class="empty">Belum ada siswa aktif</div></td></tr>'}
+  </tbody></table></div></div>`;
+}
+function formLaporan(sid, p) {
+  const s = siswaById(sid), l = D('Laporan').find(x => x.siswaId === sid && x.periode === p), a = l || lapAuto(s, p);
+  modal(`Laporan ${esc(s.nama)} — ${fmtPeriod(p)}`, `<form id="fLap" class="form-grid" onsubmit="event.preventDefault();saveLaporan('${sid}','${p}','${l ? l.id : ''}')">
+    <div class="field"><label>Level / jurus</label><select class="input" name="level">${LEVELS.map(x => `<option value="${x.n}" ${+a.level === x.n ? 'selected' : ''}>${x.judul}</option>`).join('')}</select></div>
+    <div class="field"><label>Rata-rata nilai latihan</label><input class="input" name="rataNilai" inputmode="numeric" value="${esc(a.rataNilai)}"></div>
+    <div class="field"><label>Jumlah hadir</label><input class="input" name="hadir" inputmode="numeric" value="${esc(a.hadir)}"></div>
+    <div class="field"><label>Jumlah pertemuan</label><input class="input" name="pertemuan" inputmode="numeric" value="${esc(a.pertemuan)}"></div>
+    <div class="field"><label>Bintang bulan ini</label><input class="input" name="bintang" inputmode="numeric" value="${esc(a.bintang)}"></div>
+    <div class="field full"><label>Pencapaian / perkembangan jurus</label><textarea class="input" name="pencapaian" placeholder="contoh: Sudah lancar penjumlahan satuan dengan jari kanan…">${esc(l ? l.pencapaian : '')}</textarea></div>
+    <div class="field full"><label>Catatan guru untuk orang tua</label><textarea class="input" name="catatanGuru" placeholder="contoh: Ananda fokus dan semangat, mohon latihan 10 menit di rumah…">${esc(l ? l.catatanGuru : '')}</textarea></div>
+  </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fLap').requestSubmit()">Simpan Laporan</button>`, true);
+}
+async function saveLaporan(sid, p, id) {
+  const f = formData($('#fLap'));
+  try { const r = await saveRow('Laporan', Object.assign(id ? { id } : {}, f, { siswaId: sid, periode: p, dibuat: todayStr() })); closeModal(); toast('Laporan tersimpan'); renderPage(); viewLaporan(r.id); } catch (e) { toast(e.message, true); }
+}
+function laporanHtml(s, l, settings, abs) {
+  const L = LEVELS[(+l.level || 1) - 1];
+  const pct = +l.pertemuan ? Math.round(+l.hadir / +l.pertemuan * 100) : 0;
+  return `<div class="inv">
+    <div class="inv-h"><img src="${LOGO}" alt=""><div style="flex:1"><h2>Laporan Perkembangan Belajar</h2><div class="small muted">${esc(settings.namaLembaga)} · ${esc(settings.tagline || '')}</div></div><div style="text-align:right"><b>${fmtPeriod(l.periode)}</b><div class="small muted">TA ${esc(settings.tahunAjaran || '')}</div></div></div>
+    <table><tr><td style="width:130px" class="muted">Nama siswa</td><td><b>${esc(s.nama)}</b> (${esc(s.id)})</td></tr><tr><td class="muted">Orang tua</td><td>${esc(s.ortu || '-')}</td></tr><tr><td class="muted">Level</td><td><b>${esc(L.judul)}</b> — ${esc(L.desc)}</td></tr></table>
+    <div class="grid g4 keep" style="margin:16px 0;grid-template-columns:repeat(4,1fr)">
+      <div class="stat bg-blue" style="padding:12px"><span class="lbl">Kehadiran</span><span class="val num" style="font-size:22px">${esc(l.hadir)}/${esc(l.pertemuan)}</span><span class="sub">${pct}%</span></div>
+      <div class="stat bg-green" style="padding:12px"><span class="lbl">Rata nilai</span><span class="val num" style="font-size:22px">${esc(l.rataNilai || '-')}</span><span class="sub">latihan soal</span></div>
+      <div class="stat bg-yellow" style="padding:12px"><span class="lbl">Bintang</span><span class="val num" style="font-size:22px">⭐ ${esc(l.bintang || 0)}</span><span class="sub">bulan ini</span></div>
+      <div class="stat bg-pink" style="padding:12px"><span class="lbl">Level</span><span class="val num" style="font-size:22px">${esc(l.level)}</span><span class="sub">dari 4</span></div>
+    </div>
+    <h4 style="margin-bottom:4px">Pencapaian siswa</h4><p style="margin-bottom:12px;white-space:pre-line">${esc(l.pencapaian || '-')}</p>
+    <h4 style="margin-bottom:4px">Catatan guru</h4><p style="white-space:pre-line">${esc(l.catatanGuru || '-')}</p>
+    ${abs && abs.length ? `<h4 style="margin:14px 0 6px">Riwayat kehadiran</h4><div class="chips">${abs.sort((a, b) => a.tanggal.localeCompare(b.tanggal)).map(r => `<span class="badge ${{ Hadir: 'b-green', Izin: 'b-blue', Sakit: 'b-yellow', Alpa: 'b-red' }[r.status]}">${fmtDate(r.tanggal).split(' ').slice(0, 2).join(' ')} · ${r.status}</span>`).join('')}</div>` : ''}
+    <div class="row small muted" style="margin-top:20px"><span>Dibuat ${fmtDateLong(l.dibuat)}</span><div class="spacer"></div><span>Guru/Tentor ${esc(settings.namaLembaga)}</span></div>
+  </div>`;
+}
+function viewLaporan(id) {
+  const l = D('Laporan').find(x => x.id === id), s = siswaById(l.siswaId);
+  modal('Laporan Bulanan', laporanHtml(s, l, S.settings, absMonth(s.id, l.periode).rows), `<button class="btn ghost" onclick="printHtml($('#modal .inv').outerHTML,'Laporan ${esc(s.nama)}')">${ic('print')} Cetak / PDF</button><button class="btn wa" onclick="waLaporan('${id}')">${ic('wa')} Kirim WA</button>`, true);
+}
+function waLaporan(id) {
+  const l = D('Laporan').find(x => x.id === id), s = siswaById(l.siswaId), st = S.settings;
+  openWa(s.waOrtu, `Assalamu'alaikum Bapak/Ibu ${s.ortu || ''},\n\nBerikut *Laporan Perkembangan Belajar* ananda *${s.nama}* bulan ${fmtPeriod(l.periode)} di ${st.namaLembaga}:\n\n📅 Kehadiran: ${l.hadir}/${l.pertemuan} pertemuan\n🧮 Level: ${LEVELS[(+l.level || 1) - 1].judul}\n📝 Rata-rata nilai latihan: ${l.rataNilai || '-'}\n⭐ Bintang: ${l.bintang || 0}\n\n*Pencapaian:*\n${l.pencapaian || '-'}\n\n*Catatan guru:*\n${l.catatanGuru || '-'}\n\nLaporan lengkap dapat dilihat & dicetak di Portal Orang Tua${st.portalUrl ? ': ' + st.portalUrl : ''}. Terima kasih 🙏`);
+}
+
+/* ================= GURU ================= */
+function pgGuru() {
+  const t = S.tab.guru || 'hadir';
+  return tabs('guru', [['hadir', 'Kehadiran Guru'], ['rekap', 'Rekap Jam Mengajar'], ['data', 'Data Guru']], 'hadir') + (t === 'hadir' ? guruHadir() : t === 'rekap' ? guruRekap() : guruData());
+}
+function jamDiff(a, b) { if (!a || !b) return ''; const [h1, m1] = a.split(':').map(Number), [h2, m2] = b.split(':').map(Number); const d = (h2 * 60 + m2 - h1 * 60 - m1) / 60; return d > 0 ? String(Math.round(d * 2) / 2) : ''; }
+function guruHadir() {
+  const date = S.f.gDate || todayStr(), hari = dayName(date);
+  const gs = D('Guru').filter(g => g.status !== 'Nonaktif');
+  if (!S.gDraft || S.gDraft._date !== date) {
+    S.gDraft = { _date: date };
+    D('AbsensiGuru').filter(a => a.tanggal === date).forEach(a => S.gDraft[a.guruId] = { ...a });
+  }
+  return `<div class="card"><div class="card-head"><div class="field"><label>Tanggal</label><input class="input" type="date" value="${date}" onchange="setF('gDate',this.value)"></div><div class="spacer"></div><span class="small muted">${hari}</span></div>
+  ${gs.length ? `<div class="table-wrap"><table class="t"><thead><tr><th>Guru</th><th>Status</th><th>Jam masuk</th><th>Jam keluar</th><th>Jam mengajar</th><th>Catatan</th></tr></thead><tbody>
+  ${gs.map(g => { const d = S.gDraft[g.id] || {}; const sesi = D('Jadwal').filter(j => j.hari === hari && j.guruId === g.id).length; return `<tr>
+    <td><b>${esc(g.nama)}</b><div class="small muted">${sesi} sesi terjadwal hari ini</div></td>
+    <td><div class="seg">${Object.entries(ST).map(([k, v]) => `<button class="${k} ${d.status === v ? 'on' : ''}" onclick="gSet('${g.id}','status','${v}',true)">${k}</button>`).join('')}</div></td>
+    <td><input class="input" type="time" style="padding:7px 9px" value="${esc(d.jamMasuk || '')}" onchange="gSet('${g.id}','jamMasuk',this.value)"></td>
+    <td><input class="input" type="time" style="padding:7px 9px" value="${esc(d.jamKeluar || '')}" onchange="gSet('${g.id}','jamKeluar',this.value)"></td>
+    <td><input class="input" id="jm_${g.id}" inputmode="decimal" style="padding:7px 9px;width:80px" value="${esc(d.jamMengajar || '')}" onchange="gSet('${g.id}','jamMengajar',this.value)"></td>
+    <td><input class="input" style="padding:7px 9px;min-width:120px" value="${esc(d.catatan || '')}" onchange="gSet('${g.id}','catatan',this.value)"></td></tr>`; }).join('')}
+  </tbody></table></div>
+  <div class="row" style="margin-top:14px"><span class="small muted">Jam mengajar terisi otomatis dari jam masuk–keluar (bisa diubah).</span><div class="spacer"></div><button class="btn" onclick="gSave()">Simpan Kehadiran Guru</button></div>`
+    : `<div class="empty">Belum ada data guru. Tambahkan di tab <b>Data Guru</b>.</div>`}</div>`;
+}
+function gSet(id, k, v, re) {
+  const d = S.gDraft[id] = Object.assign(S.gDraft[id] || {}, { [k]: v });
+  if (k === 'status' && v === 'Hadir' && !d.jamMasuk) { const n = new Date(); d.jamMasuk = `${pad(n.getHours())}:${pad(n.getMinutes())}`; }
+  if (k === 'jamMasuk' || k === 'jamKeluar') { const j = jamDiff(d.jamMasuk, d.jamKeluar); if (j) { d.jamMengajar = j; const el = $('#jm_' + id); if (el) el.value = j; } }
+  if (re) renderPage();
+}
+async function gSave() {
+  const date = S.f.gDate || todayStr();
+  const rows = Object.entries(S.gDraft).filter(([k, v]) => k !== '_date' && v.status).map(([gid, v]) => { const r = { tanggal: date, guruId: gid, status: v.status, jamMasuk: v.jamMasuk || '', jamKeluar: v.jamKeluar || '', jamMengajar: v.status === 'Hadir' ? (v.jamMengajar || '') : '0', catatan: v.catatan || '' }; if (v.id) r.id = v.id; return r; });
+  if (!rows.length) return toast('Pilih status kehadiran guru dulu', true);
+  try { const saved = await saveRows('AbsensiGuru', rows); saved.forEach(r => S.gDraft[r.guruId].id = r.id); toast('Kehadiran guru tersimpan'); renderPage(); } catch (e) { toast(e.message, true); }
+}
+function guruRekap() {
+  const p = S.f.gP || thisPeriod();
+  const rows = D('Guru').map(g => { const r = D('AbsensiGuru').filter(a => a.guruId === g.id && a.tanggal.startsWith(p)); const c = k => r.filter(x => x.status === k).length; return { g, H: c('Hadir'), I: c('Izin'), S: c('Sakit'), A: c('Alpa'), jam: sum(r, x => x.jamMengajar), sesi: D('Jadwal').filter(j => j.guruId === g.id).length, siswa: new Set(D('Jadwal').filter(j => j.guruId === g.id).flatMap(j => j.siswaIds.split(',').filter(Boolean))).size }; });
+  return `<div class="card"><div class="card-head"><select class="input" style="max-width:200px" onchange="setF('gP',this.value)">${monthOptions(p)}</select><div class="spacer"></div><button class="btn ghost" onclick="csvGuru('${p}')">${ic('download')} Unduh Excel (CSV)</button></div>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Guru</th><th class="c">Hadir</th><th class="c">Izin</th><th class="c">Sakit</th><th class="c">Alpa</th><th class="c">Total jam mengajar</th><th class="c">Sesi/minggu</th><th class="c">Siswa diajar</th></tr></thead><tbody>
+  ${rows.map(r => `<tr><td><b>${esc(r.g.nama)}</b></td><td class="c num cell-ok">${r.H}</td><td class="c num">${r.I}</td><td class="c num">${r.S}</td><td class="c num ${r.A ? 'cell-no' : ''}">${r.A}</td><td class="c num"><b>${r.jam} jam</b></td><td class="c num">${r.sesi}</td><td class="c num">${r.siswa}</td></tr>`).join('') || '<tr><td colspan="8"><div class="empty">Belum ada data</div></td></tr>'}
+  </tbody></table></div></div>`;
+}
+function csvGuru(p) {
+  const rows = [['Guru', 'Tanggal', 'Status', 'Jam Masuk', 'Jam Keluar', 'Jam Mengajar', 'Catatan']];
+  D('AbsensiGuru').filter(a => a.tanggal.startsWith(p)).sort((a, b) => a.tanggal.localeCompare(b.tanggal)).forEach(a => rows.push([guruById(a.guruId).nama, a.tanggal, a.status, a.jamMasuk, a.jamKeluar, a.jamMengajar, a.catatan]));
+  downloadFile(`Kehadiran-Guru-${p}.csv`, toCSV(rows));
+}
+function guruData() {
+  return `<div class="card"><div class="card-head"><h3>Data guru / tentor</h3><div class="spacer"></div><button class="btn" onclick="formGuru()">${ic('plus')} Tambah Guru</button></div>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Nama</th><th>WhatsApp</th><th>Jadwal mengajar</th><th>Status</th><th></th></tr></thead><tbody>
+  ${D('Guru').map(g => { const js = D('Jadwal').filter(j => j.guruId === g.id); return `<tr><td><b>${esc(g.nama)}</b><div class="small muted">${esc(g.catatan || '')}</div></td><td>${esc(g.wa || '-')}</td><td class="small">${js.map(j => `${j.hari} S${j.sesi} ${j.jamMulai}`).join(' · ') || '-'}</td><td>${stBadge(g.status || 'Aktif')}</td>
+  <td class="nowrap r"><button class="icon-btn" onclick="formGuru('${g.id}')">${ic('edit')}</button><button class="icon-btn" onclick="delGuru('${g.id}')">${ic('trash')}</button></td></tr>`; }).join('') || '<tr><td colspan="5"><div class="empty">Belum ada guru</div></td></tr>'}
+  </tbody></table></div></div>`;
+}
+function formGuru(id) {
+  const g = id ? guruById(id) : { status: 'Aktif' };
+  modal(id ? 'Edit Guru' : 'Tambah Guru', `<form id="fGuru" class="form-grid" onsubmit="event.preventDefault();saveGuru('${id || ''}')">
+    <div class="field full"><label>Nama *</label><input class="input" name="nama" required value="${esc(g.nama || '')}"></div>
+    <div class="field"><label>No. WhatsApp</label><input class="input" name="wa" value="${esc(g.wa || '')}"></div>
+    <div class="field"><label>Status</label><select class="input" name="status">${['Aktif', 'Nonaktif'].map(x => `<option ${g.status === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+    <div class="field full"><label>Catatan</label><input class="input" name="catatan" value="${esc(g.catatan || '')}"></div>
+  </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fGuru').requestSubmit()">Simpan</button>`);
+}
+async function saveGuru(id) { const f = formData($('#fGuru')); try { await saveRow('Guru', Object.assign(id ? { id } : {}, f)); closeModal(); toast('Data guru tersimpan'); renderPage(); } catch (e) { toast(e.message, true); } }
+function delGuru(id) { confirmBox(`Hapus guru <b>${esc(guruById(id).nama)}</b>?`, async () => { await removeRow('Guru', id); renderPage(); }); }
+
+/* ================= PENGATURAN ================= */
+function pgPengaturan() {
+  const s = S.settings;
+  const f = (k, l, ph = '', full = false, type = 'text') => `<div class="field ${full ? 'full' : ''}"><label>${l}</label><input class="input" type="${type}" name="${k}" value="${esc(s[k] || '')}" placeholder="${ph}"></div>`;
+  return `<div class="grid g2" style="align-items:start">
+  <div class="card"><h3>Profil lembaga & SPP</h3>
+    <form id="fSet" class="form-grid" onsubmit="event.preventDefault();saveSettings()">
+      ${f('namaLembaga', 'Nama lembaga', '', true)}${f('tagline', 'Tagline', '', true)}${f('alamat', 'Alamat', '', true)}
+      ${f('noWa', 'No. WhatsApp admin')}${f('tahunAjaran', 'Tahun ajaran', '2026/2027')}
+      ${f('nominalSPP', 'Nominal SPP default (Rp)', '150000')}${f('jatuhTempo', 'Jatuh tempo (tanggal)', '10')}
+      ${f('pertemuanPerBulan', 'Pertemuan per bulan', '8')}${f('portalUrl', 'Link portal (untuk WA)', 'https://…')}
+      ${f('rekening', 'Rekening pembayaran', 'BCA 123… a.n. …', true)}
+      <div class="full"><button class="btn">Simpan Pengaturan</button></div>
+    </form></div>
+  <div class="grid">
+    <div class="card"><h3>Ganti password admin</h3>
+      <form id="fPw" class="form-grid" onsubmit="event.preventDefault();changePw()">
+        <div class="field full"><label>Password lama</label><input class="input" type="password" name="oldPass" required></div>
+        <div class="field"><label>Password baru</label><input class="input" type="password" name="newPass" required minlength="6"></div>
+        <div class="field"><label>Ulangi password baru</label><input class="input" type="password" name="newPass2" required></div>
+        <div class="full"><button class="btn ghost">Ganti Password</button></div>
+      </form></div>
+    <div class="card"><h3>Level Jarimatika</h3>${LEVELS.map(l => `<div class="li"><div class="avatar" style="background:${l.color};color:#fff">${l.n}</div><div class="meta"><b>${l.judul}</b><span class="small muted">${l.desc}</span></div></div>`).join('')}</div>
+    <div class="card"><h3>Data & koneksi</h3>
+      <p class="small" style="margin-bottom:10px">Mode: <b>${IS_GAS ? 'Google Apps Script' : DEMO ? 'DEMO (data tersimpan di browser ini saja)' : 'API ' + esc(CONFIG.API_URL.slice(0, 48)) + '…'}</b></p>
+      <div class="row"><button class="btn ghost" onclick="backupJson()">${ic('download')} Cadangkan data (JSON)</button><button class="btn ghost" onclick="reloadData()">Muat ulang data</button>
+      ${DEMO ? `<button class="btn red" onclick="confirmBox('Reset semua data demo ke contoh awal?',()=>{Mock.reset();logout()},'Reset')">Reset demo</button>` : ''}</div>
+      <p class="small muted" style="margin-top:10px">Data utama tersimpan di Google Spreadsheet — cadangan otomatis tersedia lewat <i>File → Version history</i>.</p>
+    </div>
+  </div></div>`;
+}
+async function saveSettings() { try { const r = await call('saveSettings', { settings: formData($('#fSet')) }); S.settings = r.settings; toast('Pengaturan tersimpan'); renderAdmin(); } catch (e) { toast(e.message, true); } }
+async function changePw() {
+  const f = formData($('#fPw')); if (f.newPass !== f.newPass2) return toast('Password baru tidak sama', true);
+  try { await call('changePassword', { oldPass: f.oldPass, newPass: f.newPass }); toast('Password berhasil diganti'); $('#fPw').reset(); } catch (e) { toast(e.message, true); }
+}
+function backupJson() { downloadFile(`Backup-JariMath-${todayStr()}.json`, JSON.stringify({ settings: S.settings, db: S.db }, null, 1), 'application/json'); }
+async function reloadData() { const r = await call('bootstrap'); S.db = r.data.db; S.settings = r.data.settings; renderAdmin(); toast('Data diperbarui'); }
+
+/* =========================================================
+   PORTAL MURID — latihan soal Jarimatika level 1–4
+   ========================================================= */
+function kidTop(sub) {
+  const s = S.me.siswa;
+  const stars = sum(S.me.Bintang, b => b.jumlah);
+  return `<div class="kid-top"><img src="${LOGO}" alt=""><div style="flex:1;min-width:0"><b style="font-family:var(--font-h);font-size:18px;color:var(--pink)">${esc(S.settings.namaLembaga)}</b><div class="small muted">${sub}</div></div>
+    ${S.role === 'murid' ? `<span class="star-pill">⭐ ${stars}</span>` : ''}<button class="icon-btn" title="Keluar" onclick="logout()">${ic('logout')}</button></div>`;
+}
+function renderMurid() {
+  const s = S.me.siswa, lv = +s.level || 1;
+  const nilai = [...S.me.Nilai].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+  const p = thisPeriod(); const ab = S.me.Absensi.filter(a => a.tanggal.startsWith(p));
+  $('#app').innerHTML = kidTop('Portal Murid') + `<div class="kid-wrap">
+    <div class="kid-hero"><div class="big-emoji">🧒</div><div><h2>Hai, ${esc(s.panggilan || s.nama.split(' ')[0])}!</h2><p>Yuk latihan berhitung cepat pakai jari hari ini ✋</p><span class="lv">${esc(LEVELS[lv - 1].judul)}</span></div></div>
+    <h3 style="font-size:20px">Pilih level latihan</h3>
+    <div class="levels">${LEVELS.map(L => { const locked = L.n > lv; const best = Math.max(0, ...nilai.filter(n => +n.level === L.n).map(n => +n.skor)); return `
+      <button class="level-card ${locked ? 'locked' : ''}" style="background:${L.bg}" onclick="${locked ? `toast('Level ${L.n} terbuka setelah naik level bersama guru 🔒')` : `startQuiz(${L.n})`}">
+        ${locked ? '<span class="lock">🔒</span>' : ''}
+        <span class="n" style="background:${L.color}">${L.n}</span>
+        <span><h3>${L.judul.replace('Level ' + L.n + ' — ', '')}</h3><p>${L.desc}</p><p style="margin-top:4px;font-weight:800;color:var(--ink)">${locked ? 'Terkunci' : best ? `Skor terbaik ${best} ${'⭐'.repeat(starsFor(best))}` : 'Belum pernah latihan'}</p></span>
+      </button>`; }).join('')}</div>
+    <div class="grid g2">
+      <div class="card"><h3>Riwayat latihan</h3>${nilai.slice(0, 8).map(n => `<div class="li"><div class="avatar" style="background:${LEVELS[n.level - 1].bg}">${esc(n.level)}</div><div class="meta"><b>Skor ${esc(n.skor)} · ${esc(n.benar)}/${esc(n.total)} benar</b><span class="small muted">${fmtDate(n.tanggal)} · ${Math.floor(n.durasi / 60)}m ${n.durasi % 60}d</span></div><span>${'⭐'.repeat(+n.bintang) || '—'}</span></div>`).join('') || '<div class="empty">Belum ada latihan. Ayo mulai! 💪</div>'}</div>
+      <div class="card"><h3>Kehadiranku — ${BULAN[+p.slice(5) - 1]}</h3>
+        <div class="grid g2 keep" style="margin-bottom:10px"><div class="stat bg-green"><span class="lbl">Hadir</span><span class="val num">${ab.filter(a => a.status === 'Hadir').length}</span></div><div class="stat bg-blue"><span class="lbl">Pertemuan</span><span class="val num">${ab.length}</span></div></div>
+        <h4 style="margin:6px 0">Jadwal lesku</h4>${S.me.Jadwal.map(j => `<div class="li"><div class="meta"><b>${esc(j.hari)} · ${esc(j.jamMulai)}–${esc(j.jamSelesai)}</b><span class="small muted">${esc(j.tipe)} · ${esc(j.guruNama)}</span></div></div>`).join('') || '<div class="small muted">Belum ada jadwal</div>'}
+      </div>
+    </div>
+    <div class="card" style="background:${LEVELS[lv - 1].bg}"><h3>💡 Tips jurus ${LEVELS[lv - 1].judul.split(' — ')[0]}</h3><p>${LEVELS[lv - 1].tip}</p></div>
+  </div>`;
+}
+
+let Q = null;
+function startQuiz(level) {
+  Q = { level, items: buildQuiz(level, S.me.Soal, 10), i: 0, ans: '', res: [], t0: Date.now(), lock: false };
+  renderQuiz();
+  clearInterval(Q.timer); Q.timer = setInterval(() => { const el = $('#qTimer'); if (el) el.textContent = fmtSec((Date.now() - Q.t0) / 1000); else clearInterval(Q.timer); }, 1000);
+}
+const fmtSec = s => `${Math.floor(s / 60)}:${pad(Math.floor(s % 60))}`;
+function renderQuiz(state = '') {
+  const it = Q.items[Q.i], L = LEVELS[Q.level - 1];
+  $('#app').innerHTML = kidTop(L.judul) + `<div class="kid-wrap"><div class="quiz">
+    <div class="row"><button class="btn sm ghost" onclick="quitQuiz()">✕ Keluar</button><div class="spacer"></div><b>Soal ${Q.i + 1}/${Q.items.length}</b><div class="spacer"></div><span class="badge b-pink" style="font-size:14px">⏱ <span id="qTimer">${fmtSec((Date.now() - Q.t0) / 1000)}</span></span></div>
+    <div class="dots">${Q.items.map((_, k) => `<i class="${k < Q.res.length ? (Q.res[k] ? 'ok' : 'no') : k === Q.i ? 'cur' : ''}"></i>`).join('')}</div>
+    <div class="q-box ${state}" id="qBox"><div class="q-text">${esc(it.q)} = ?</div><div class="q-ans" id="qAns">${esc(Q.ans) || '&nbsp;'}</div>
+      ${state === 'wrong' ? `<div style="margin-top:8px;font-weight:800;color:var(--red)">Jawaban yang benar: ${esc(it.ans)}</div>` : state === 'right' ? '<div style="margin-top:8px;font-weight:800;color:var(--green)">Hebat! Benar 🎉</div>' : ''}</div>
+    <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button onclick="qKey('${n}')">${n}</button>`).join('')}<button class="del" onclick="qKey('del')">⌫</button><button onclick="qKey('0')">0</button><button class="ok" onclick="qKey('ok')">✓</button></div>
+  </div></div>`;
+}
+function qKey(k) {
+  if (!Q || Q.lock) return;
+  if (k === 'del') Q.ans = Q.ans.slice(0, -1);
+  else if (k === 'ok') return qSubmit();
+  else if (Q.ans.length < 5) Q.ans += k;
+  const el = $('#qAns'); if (el) el.innerHTML = esc(Q.ans) || '&nbsp;';
+}
+function qSubmit() {
+  if (!Q.ans) return;
+  const ok = Q.ans.replace(/^0+(?=\d)/, '') === String(Q.items[Q.i].ans);
+  Q.res.push(ok); Q.lock = true;
+  renderQuiz(ok ? 'right' : 'wrong');
+  setTimeout(() => { Q.lock = false; Q.i++; Q.ans = ''; Q.i >= Q.items.length ? finishQuiz() : renderQuiz(); }, ok ? 700 : 1600);
+}
+document.addEventListener('keydown', e => {
+  if (!Q || S.role !== 'murid' || !$('.keypad')) return;
+  if (/^\d$/.test(e.key)) qKey(e.key); else if (e.key === 'Backspace') qKey('del'); else if (e.key === 'Enter') qKey('ok');
+});
+function quitQuiz() { confirmBox('Keluar dari latihan? Hasil tidak akan disimpan.', () => { clearInterval(Q.timer); Q = null; renderMurid(); }, 'Ya, keluar'); }
+async function finishQuiz() {
+  clearInterval(Q.timer);
+  const benar = Q.res.filter(Boolean).length, total = Q.items.length, durasi = Math.round((Date.now() - Q.t0) / 1000);
+  let r;
+  try { r = (await call('submitQuiz', { level: Q.level, benar, total, durasi })).result; }
+  catch (e) { toast(e.message, true); r = { skor: Math.round(benar / total * 100), bintang: 0, gagal: true }; }
+  try { const m = await call('me', {}, { silent: true }); S.me = m.data; } catch (e) {}
+  const msg = r.skor === 100 ? 'Sempurna! Kamu jago banget! 🏆' : r.skor >= 75 ? 'Keren! Terus berlatih ya! 🎉' : r.skor >= 60 ? 'Bagus! Sedikit lagi jadi juara 💪' : 'Tidak apa-apa, ayo coba lagi! 🌈';
+  const lv = Q.level; Q = null;
+  $('#app').innerHTML = kidTop('Hasil latihan') + `<div class="kid-wrap"><div class="quiz result">
+    <h2 style="font-size:24px">Latihan selesai!</h2>
+    <div class="stars">${[0, 1, 2].map(i => `<span class="${i < r.bintang ? '' : 'off'}" style="animation-delay:${.15 + i * .2}s">⭐</span>`).join('')}</div>
+    <div class="score-big num">${r.skor}</div>
+    <p style="font-weight:800">${benar} dari ${total} benar · waktu ${fmtSec(durasi)}</p>
+    <p style="font-size:18px;margin:8px 0 6px">${msg}</p>
+    ${r.bintang ? `<p class="badge b-yellow" style="font-size:14px">+${r.bintang} bintang masuk ke tabunganmu!</p>` : '<p class="small muted">Dapatkan skor 60 ke atas untuk mendapat bintang.</p>'}
+    ${r.gagal ? '<p class="small" style="color:var(--red)">Hasil belum tersimpan (koneksi). Coba lagi nanti.</p>' : ''}
+    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn ghost" onclick="renderMurid()">Kembali</button><button class="btn" onclick="startQuiz(${lv})">Ulangi Level ${lv}</button></div>
+  </div></div>`;
+}
+
+/* =========================================================
+   PORTAL ORANG TUA
+   ========================================================= */
+function renderOrtu() {
+  const s = S.me.siswa, st = S.settings, p = thisPeriod();
+  const t = S.tab.ortu || 'ringkas';
+  const periods = billablePeriods(s, p, 12);
+  const pay = per => S.me.SPP.find(x => x.periode === per);
+  const unpaid = s.status === 'Aktif' ? periods.filter(per => !pay(per)) : [];
+  const ab = S.me.Absensi.filter(a => a.tanggal.startsWith(p));
+  const stars = sum(S.me.Bintang, b => b.jumlah);
+  const laps = [...S.me.Laporan].sort((a, b) => b.periode.localeCompare(a.periode));
+  const L = LEVELS[(+s.level || 1) - 1];
+  let body = '';
+  if (t === 'ringkas') {
+    body = `${unpaid.length ? `<div class="card" style="background:var(--red-50);border-color:#F8CACA"><div class="row"><div style="font-size:30px">⚠️</div><div style="flex:1;min-width:200px"><h3 style="color:#B4282D;margin:0">Ada tagihan SPP belum dibayar</h3><p class="small">${unpaid.map(fmtPeriod).join(', ')} · total <b>${rp(unpaid.length * sppNominal(s, st))}</b></p></div><button class="btn red" onclick="S.tab.ortu='spp';renderOrtu()">Lihat Invoice</button></div></div>`
+      : `<div class="card" style="background:var(--green-50);border-color:#BFEBD2"><div class="row"><div style="font-size:30px">✅</div><div><h3 style="color:#0E7A41;margin:0">SPP ${fmtPeriod(p)} sudah lunas</h3><p class="small">Terima kasih atas pembayarannya 🙏</p></div></div></div>`}
+    <div class="grid g4">
+      <div class="stat bg-blue"><span class="lbl">Hadir ${BULAN[+p.slice(5) - 1]}</span><span class="val num">${ab.filter(a => a.status === 'Hadir').length}/${ab.length}</span><span class="sub">pertemuan</span></div>
+      <div class="stat" style="background:${L.bg}"><span class="lbl">Level</span><span class="val num">${esc(s.level)}</span><span class="sub">${L.desc}</span></div>
+      <div class="stat bg-yellow"><span class="lbl">Tabungan bintang</span><span class="val num">⭐ ${stars}</span><span class="sub">bisa ditukar hadiah</span></div>
+      <div class="stat bg-green"><span class="lbl">Latihan</span><span class="val num">${S.me.Nilai.length}</span><span class="sub">rata-rata ${S.me.Nilai.length ? Math.round(sum(S.me.Nilai, n => n.skor) / S.me.Nilai.length) : '-'}</span></div>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h3>Laporan terbaru</h3>${laps[0] ? `<div class="li"><div class="avatar" style="background:var(--blue-50)">📄</div><div class="meta"><b>${fmtPeriod(laps[0].periode)}</b><span class="small muted">${esc((laps[0].catatanGuru || '').slice(0, 80))}…</span></div><button class="btn sm" onclick="ortuLap('${laps[0].id}')">Lihat</button></div>` : '<div class="empty">Laporan bulan ini belum tersedia</div>'}</div>
+      <div class="card"><h3>Jadwal les</h3>${S.me.Jadwal.map(j => `<div class="li"><div class="avatar" style="background:var(--green-50)">${esc(j.hari.slice(0, 2))}</div><div class="meta"><b>${esc(j.hari)}, ${esc(j.jamMulai)}–${esc(j.jamSelesai)}</b><span class="small muted">${esc(j.tipe)} · ${esc(j.guruNama)}</span></div></div>`).join('') || '<div class="empty">Belum ada jadwal</div>'}</div>
+    </div>`;
+  } else if (t === 'spp') {
+    const all = [...new Set(periods.concat(S.me.SPP.map(x => x.periode)))].sort().reverse();
+    body = `<div class="card"><div class="card-head"><h3>Status SPP</h3><div class="spacer"></div><span class="small muted">Nominal ${rp(sppNominal(s, st))}/bulan · jatuh tempo tgl ${esc(st.jatuhTempo)}</span></div>
+      <table class="t"><thead><tr><th>Periode</th><th>Status</th><th class="r"></th></tr></thead><tbody>
+      ${all.map(per => { const x = pay(per); return `<tr class="${x ? '' : 'unpaid'}"><td><b>${fmtPeriod(per)}</b><div class="small muted">${x ? `Dibayar ${fmtDate(x.tanggalBayar)} · ${esc(x.metode)}` : `Jatuh tempo ${fmtDate(dueDate(per, st))}`}</div></td><td>${x ? '<span class="badge b-green">✓ Lunas</span>' : '<span class="badge b-red">● Belum bayar</span>'}</td><td class="r"><button class="btn sm ${x ? 'ghost' : ''}" onclick="ortuInv('${per}')">${x ? 'Kwitansi' : 'Invoice'}</button></td></tr>`; }).join('') || '<tr><td colspan="3"><div class="empty">Belum ada tagihan</div></td></tr>'}
+      </tbody></table>
+      <div style="margin-top:14px;background:var(--yellow-50);border-radius:14px;padding:12px 14px" class="small"><b>Cara bayar:</b> transfer ke ${esc(st.rekening || '-')}, lalu kirim bukti ke admin.<div style="margin-top:8px"><button class="btn sm wa" onclick="openWa('${esc(st.noWa)}','Assalamu\\'alaikum admin, saya orang tua ${esc(s.nama)} (${esc(s.id)}) ingin konfirmasi pembayaran SPP. Berikut bukti transfernya:')">${ic('wa')} Konfirmasi ke Admin</button></div></div></div>`;
+  } else if (t === 'absen') {
+    const per = S.f.oP || p; const rows = S.me.Absensi.filter(a => a.tanggal.startsWith(per)).sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+    const c = k => rows.filter(r => r.status === k).length;
+    body = `<div class="card"><div class="card-head"><select class="input" style="max-width:200px" onchange="S.f.oP=this.value;renderOrtu()">${monthOptions(per, 12, 0)}</select></div>
+      <div class="row" style="margin-bottom:10px"><span class="badge b-green">Hadir ${c('Hadir')}</span><span class="badge b-blue">Izin ${c('Izin')}</span><span class="badge b-yellow">Sakit ${c('Sakit')}</span><span class="badge b-red">Alpa ${c('Alpa')}</span></div>
+      ${rows.map(r => `<div class="li"><div class="meta"><b>${dayName(r.tanggal)}, ${fmtDateLong(r.tanggal)}</b>${r.catatan ? `<span class="small muted">${esc(r.catatan)}</span>` : ''}</div><span class="badge ${{ Hadir: 'b-green', Izin: 'b-blue', Sakit: 'b-yellow', Alpa: 'b-red' }[r.status]}">${r.status}</span></div>`).join('') || '<div class="empty">Belum ada absensi di bulan ini</div>'}</div>`;
+  } else if (t === 'lap') {
+    body = `<div class="card"><h3>Laporan bulanan</h3>${laps.map(l => `<div class="li"><div class="avatar" style="background:var(--blue-50)">📄</div><div class="meta"><b>${fmtPeriod(l.periode)}</b><span class="small muted">Hadir ${esc(l.hadir)}/${esc(l.pertemuan)} · nilai ${esc(l.rataNilai || '-')} · ⭐ ${esc(l.bintang)}</span></div><button class="btn sm" onclick="ortuLap('${l.id}')">Lihat / Cetak</button></div>`).join('') || '<div class="empty">Belum ada laporan</div>'}</div>`;
+  } else {
+    const nilai = [...S.me.Nilai].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+    const bin = [...S.me.Bintang].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+    body = `<div class="grid g2"><div class="card"><h3>Hasil latihan soal</h3>${nilai.slice(0, 20).map(n => `<div class="li"><div class="avatar" style="background:${LEVELS[n.level - 1].bg}">L${esc(n.level)}</div><div class="meta"><b>Skor ${esc(n.skor)} (${esc(n.benar)}/${esc(n.total)})</b><span class="small muted">${fmtDate(n.tanggal)}</span></div><span>${'⭐'.repeat(+n.bintang) || '—'}</span></div>`).join('') || '<div class="empty">Belum ada latihan</div>'}</div>
+      <div class="card"><h3>Riwayat bintang</h3>${bin.slice(0, 20).map(b => `<div class="li"><div class="meta"><b>${esc(b.keterangan)}</b><span class="small muted">${fmtDate(b.tanggal)}</span></div><b class="num">${+b.jumlah > 0 ? '+' : ''}${esc(b.jumlah)}</b></div>`).join('') || '<div class="empty">Belum ada</div>'}</div></div>`;
+  }
+  $('#app').innerHTML = kidTop('Portal Orang Tua') + `<div class="kid-wrap">
+    <div class="hero"><div class="avatar" style="width:64px;height:64px;font-size:24px;position:relative;z-index:1">${initials(s.nama)}</div><div style="position:relative;z-index:1;min-width:0"><h2>${esc(s.nama)}</h2><p>${esc(s.id)} · ${esc(L.judul)} · ${stBadge(s.status)}</p></div></div>
+    <div class="row"><div class="tabs">${[['ringkas', 'Ringkasan'], ['spp', `SPP${unpaid.length ? ' 🔴' : ''}`], ['absen', 'Kehadiran'], ['lap', 'Laporan'], ['latihan', 'Latihan & Bintang']].map(([k, l]) => `<button class="${t === k ? 'on' : ''}" onclick="S.tab.ortu='${k}';renderOrtu()">${l}</button>`).join('')}</div></div>
+    ${body}
+  </div>`;
+}
+function ortuInv(per) {
+  const s = S.me.siswa, x = S.me.SPP.find(v => v.periode === per);
+  modal(x ? 'Kwitansi Pembayaran' : 'Invoice SPP', invoiceHtml(s, per, x, S.settings), `<button class="btn ghost" onclick="printHtml($('#modal .inv').outerHTML,'SPP ${fmtPeriod(per)}')">${ic('print')} Cetak / Simpan PDF</button>${x ? '' : `<button class="btn wa" onclick="openWa('${esc(S.settings.noWa)}','Assalamu\\'alaikum admin, saya orang tua ${esc(s.nama)} (${esc(s.id)}) ingin konfirmasi pembayaran SPP ${fmtPeriod(per)}. Berikut bukti transfernya:')">${ic('wa')} Kirim Bukti Bayar</button>`}`, true);
+}
+function ortuLap(id) {
+  const l = S.me.Laporan.find(x => x.id === id), s = S.me.siswa;
+  modal('Laporan Bulanan', laporanHtml(s, l, S.settings, S.me.Absensi.filter(a => a.tanggal.startsWith(l.periode))), `<button class="btn" onclick="printHtml($('#modal .inv').outerHTML,'Laporan ${esc(s.nama)}')">${ic('print')} Cetak / Simpan PDF</button>`, true);
+}
+
+init();
+
+</script>
+</body>
+</html>
