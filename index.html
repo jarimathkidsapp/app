@@ -140,7 +140,7 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
 .main{min-width:0;display:flex;flex-direction:column}
 .topbar{display:flex;align-items:center;gap:10px;padding:14px 26px;position:sticky;top:0;z-index:20;background:rgba(255,247,251,.9);backdrop-filter:blur(8px)}
 .topbar h2{font-size:22px}
-.topbar .menu-btn{display:none}
+.topbar .menu-btn,.topbar .home-btn,.mobile-only{display:none!important}
 .content{padding:6px 26px 40px;display:flex;flex-direction:column;gap:16px;max-width:1240px;width:100%}
 .user-pill{display:flex;align-items:center;gap:8px;background:#fff;border-radius:999px;padding:5px 6px 5px 14px;box-shadow:var(--shadow);font-weight:700;font-size:13px}
 .avatar{width:30px;height:30px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;font-family:var(--font-h);font-weight:700;color:var(--ink);font-size:14px;flex-shrink:0}
@@ -151,7 +151,8 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
   .side.open{transform:none}
   .scrim{position:fixed;inset:0;background:rgba(45,42,74,.35);z-index:55}
   .topbar{padding:12px 16px}
-  .topbar .menu-btn{display:inline-grid}
+  .topbar .menu-btn,.topbar .home-btn{display:inline-grid!important}
+  .nav-item.mobile-only{display:flex!important}
   .topbar h2{font-size:19px}
   .user-pill .nm{display:none}
   .content{padding:4px 16px 40px}
@@ -293,7 +294,7 @@ const LOGO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6s
 const IS_GAS = typeof google !== 'undefined' && google.script && google.script.run;
 const DEMO = !IS_GAS && !CONFIG.API_URL;
 
-const S = { token: null, role: null, profile: null, db: {}, settings: {}, me: null, page: 'dashboard', tab: {}, f: {} };
+const S = { token: null, role: null, profile: null, db: {}, settings: {}, me: null, page: null, tab: {}, f: {} };
 
 /* ---------------- storage aman ---------------- */
 const store = {
@@ -428,42 +429,48 @@ const ICONS = {
   cake: '<path d="M4 21h16v-7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 16c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5M12 12V8M12 5.5v-.01"/>',
   alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>',
   key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M14 9l2 2"/>',
+  money: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v.01M18 14.5v.01"/>',
+  note: '<path d="M5 3h10l4 4v14H5z"/><path d="M14 3v5h5M8.5 12.5h7M8.5 16h5"/>',
   book: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7"/>'
 };
 const ic = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[n] || ''}</svg>`;
 
 /* ---------------- JARIMATIKA: level & generator soal ---------------- */
-const LEVELS = [
-  { n: 1, judul: 'Level 1 — Satuan', desc: 'Penjumlahan & pengurangan 1–9', color: 'var(--pink)', bg: 'var(--pink-50)', tip: 'Jari kanan = satuan. Telunjuk 1, jari tengah 2, jari manis 3, kelingking 4, jempol 5. Tambah = buka jari, kurang = tutup jari.' },
-  { n: 2, judul: 'Level 2 — Puluhan', desc: 'Penjumlahan & pengurangan 10–99', color: '#E0A800', bg: 'var(--yellow-50)', tip: 'Jari kiri = puluhan, jari kanan = satuan. Hitung satuan dulu, lalu puluhan.' },
-  { n: 3, judul: 'Level 3 — Perkalian', desc: 'Perkalian 1–10 dengan jari', color: 'var(--green)', bg: 'var(--green-50)', tip: 'Perkalian 6–10: jari yang dibuka = puluhan, jari tertutup kiri × kanan = satuan.' },
-  { n: 4, judul: 'Level 4 — Pembagian & Campuran', desc: 'Pembagian & operasi campuran', color: 'var(--blue)', bg: 'var(--blue-50)', tip: 'Pembagian = kebalikan perkalian. Cari angka yang jika dikali pembagi hasilnya sama.' }
+/* Level & jurus diambil dari Pengaturan (bisa diubah admin) */
+const LV_STYLE = [
+  { color: 'var(--pink)', bg: 'var(--pink-50)' }, { color: '#E0A800', bg: 'var(--yellow-50)' },
+  { color: 'var(--green)', bg: 'var(--green-50)' }, { color: 'var(--blue)', bg: 'var(--blue-50)' }
 ];
-const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
-function genSoal(level) {
-  let a, b, c, q, ans;
-  if (level == 1) {
-    if (Math.random() < .55) { a = ri(1, 9); b = ri(1, 9); q = `${a} + ${b}`; ans = a + b; }
-    else { a = ri(2, 18); b = ri(1, Math.min(9, a)); q = `${a} − ${b}`; ans = a - b; }
-  } else if (level == 2) {
-    if (Math.random() < .55) { a = ri(10, 89); b = ri(10, 99 - a > 10 ? 99 - a : 10); q = `${a} + ${b}`; ans = a + b; }
-    else { a = ri(20, 99); b = ri(10, a); q = `${a} − ${b}`; ans = a - b; }
-  } else if (level == 3) {
-    a = Math.random() < .6 ? ri(6, 10) : ri(2, 5); b = Math.random() < .6 ? ri(6, 10) : ri(1, 10);
-    q = `${a} × ${b}`; ans = a * b;
-  } else {
-    if (Math.random() < .55) { b = ri(2, 10); c = ri(1, 10); a = b * c; q = `${a} ÷ ${b}`; ans = c; }
-    else { a = ri(10, 50); b = ri(5, 40); c = ri(1, Math.min(30, a + b)); q = `${a} + ${b} − ${c}`; ans = a + b - c; }
-  }
-  return { q, ans: String(ans) };
+const LV_DEFAULT = [
+  { n: 1, nama: 'Jurus 0', desc: 'Pengenalan jari & jurus 0', jurus: 'Jurus 0' },
+  { n: 2, nama: 'Teman Kecil', desc: 'Jurus 1 & 2 — Teman Kecil', jurus: 'Jurus 1, Jurus 2' },
+  { n: 3, nama: 'Teman Besar', desc: 'Jurus 3 & 4 — Teman Besar', jurus: 'Jurus 3, Jurus 4' },
+  { n: 4, nama: 'Ratusan & Tempel Lempar', desc: 'Ratusan, Jurus 5 & 6 — Tempel Lempar', jurus: 'Ratusan, Jurus 5, Jurus 6' }
+];
+let _lvKey = null, _lvVal = null;
+function LV() {
+  const raw = (S.settings && S.settings.levels) || '';
+  if (raw === _lvKey && _lvVal) return _lvVal;
+  let arr = LV_DEFAULT;
+  try { const p = JSON.parse(raw); if (Array.isArray(p) && p.length === 4) arr = p; } catch (e) {}
+  _lvKey = raw;
+  _lvVal = arr.map((l, i) => Object.assign({}, LV_DEFAULT[i], l, LV_STYLE[i], {
+    n: i + 1, judul: `Level ${i + 1} · ${l.nama || LV_DEFAULT[i].nama}`, tip: l.desc || '',
+    jurusList: String(l.jurus || '').split(',').map(x => x.trim()).filter(Boolean)
+  }));
+  return _lvVal;
 }
-function buildQuiz(level, bank, n = 10) {
-  const pool = (bank || []).filter(s => String(s.level) === String(level) && s.aktif !== 'Tidak').sort(() => Math.random() - .5);
-  const out = pool.slice(0, Math.min(5, pool.length)).map(s => ({ q: s.soal, ans: String(s.jawaban).trim() }));
-  const seen = new Set(out.map(x => x.q));
-  let guard = 0;
-  while (out.length < n && guard++ < 200) { const g = genSoal(level); if (!seen.has(g.q)) { seen.add(g.q); out.push(g); } }
-  return out.sort(() => Math.random() - .5);
+const lvOf = n => LV()[Math.min(4, Math.max(1, +n || 1)) - 1];
+function buildQuiz(level, bank, jurus, n) {
+  n = n || Number(S.settings.soalPerLatihan) || 10;
+  const pool = (bank || []).filter(s => String(s.level) === String(level) && s.aktif !== 'Tidak' && (!jurus || s.jurus === jurus)).sort(() => Math.random() - .5);
+  return pool.slice(0, n).map(s => ({ q: s.soal, ans: String(s.jawaban).trim() }));
+}
+/* hitung jawaban otomatis dari teks soal, contoh "4 + 5 − 3" */
+function hitungSoal(t) {
+  const e = String(t).replace(/[×xX]/g, '*').replace(/[÷:]/g, '/').replace(/[−–]/g, '-').replace(/=.*$/, '');
+  if (!/^[\d\s+\-*/().]+$/.test(e)) return '';
+  try { const v = Function('return (' + e + ')')(); return Number.isFinite(v) ? String(Math.round(v * 1000) / 1000) : ''; } catch (x) { return ''; }
 }
 const starsFor = skor => skor >= 90 ? 3 : skor >= 75 ? 2 : skor >= 60 ? 1 : 0;
 
@@ -508,22 +515,23 @@ function invoiceWaText(s, periode, pay, settings) {
 
 /* ---------------- LOGIN ---------------- */
 function renderLogin(role = S.loginRole || 'admin') {
+  if (!['admin', 'guru', 'ortu'].includes(role)) role = 'admin';
   S.loginRole = role;
-  const lbl = { admin: ['Username', 'Password', 'text'], murid: ['ID Siswa (contoh: JMK001)', 'PIN Murid', 'text'], ortu: ['ID Siswa (contoh: JMK001)', 'Kode Akses Orang Tua', 'text'] }[role];
+  const lbl = { admin: ['Username', 'Password'], guru: ['ID Guru (contoh: G01)', 'PIN Guru'], ortu: ['ID Siswa (contoh: JMK001)', 'Kode Akses Orang Tua'] }[role] || ['Username', 'Password'];
   $('#app').innerHTML = `<div class="login-wrap"><div class="login-card">
     <img class="logo" src="${LOGO}" alt="JariMath Kids">
     <h1>Portal JariMath Kids</h1>
     <p class="muted small">Berhitung cepat dengan jari tangan ✋</p>
     <div class="tabs">
-      ${[['admin', 'Admin'], ['murid', 'Murid'], ['ortu', 'Orang Tua']].map(([k, v]) => `<button class="${k === role ? 'on' : ''}" onclick="renderLogin('${k}')">${v}</button>`).join('')}
+      ${[['admin', 'Admin'], ['guru', 'Guru'], ['ortu', 'Orang Tua']].map(([k, v]) => `<button class="${k === role ? 'on' : ''}" onclick="renderLogin('${k}')">${v}</button>`).join('')}
     </div>
     <form onsubmit="doLogin(event)">
       <div class="field"><label>${lbl[0]}</label><input class="input" name="user" autocomplete="username" required ${role !== 'admin' ? 'style="text-transform:uppercase"' : ''}></div>
       <div class="field"><label>${lbl[1]}</label><input class="input" name="pass" type="password" ${role !== 'admin' ? 'inputmode="numeric"' : ''} autocomplete="current-password" required></div>
       <button class="btn block" style="margin-top:4px;padding:13px">Masuk</button>
     </form>
-    <p class="login-hint">${role === 'admin' ? 'Khusus pengelola JariMath Kids.' : role === 'murid' ? 'PIN diberikan oleh admin/guru.' : 'Kode akses dikirim admin lewat WhatsApp.'}</p>
-    ${DEMO ? `<div class="demo-box"><b>Mode Demo</b> — data contoh tersimpan di browser ini.<br>Admin: <b>admin</b> / <b>jarimath123</b> · Murid: <b>JMK001</b> PIN <b>1234</b> · Ortu: <b>JMK001</b> kode <b>5678</b></div>` : ''}
+    <p class="login-hint">${role === 'admin' ? 'Khusus pengelola JariMath Kids.' : role === 'guru' ? 'ID & PIN guru diberikan oleh admin.' : 'Kode akses dikirim admin lewat WhatsApp.'}</p>
+    ${DEMO ? `<div class="demo-box"><b>Mode Demo</b> — data contoh tersimpan di browser ini.<br>Admin: <b>admin</b> / <b>jarimath123</b> · Guru: <b>G01</b> PIN <b>1111</b> · Ortu: <b>JMK001</b> kode <b>5678</b></div>` : ''}
   </div></div>`;
 }
 async function doLogin(e) {
@@ -538,14 +546,15 @@ async function doLogin(e) {
 }
 function logout(expired) {
   if (S.token && !expired) call('logout', {}, { silent: true }).catch(() => {});
-  S.token = null; S.role = null; S.db = {}; S.me = null; S.page = 'dashboard';
+  S.token = null; S.role = null; S.db = {}; S.me = null; S.page = null;
   store.del('jmk_session'); closeModal();
   renderLogin();
   if (expired) toast('Sesi berakhir, silakan login kembali', true);
 }
 async function startApp() {
-  if (S.role === 'admin') { const r = await call('bootstrap'); S.db = r.data.db; S.settings = r.data.settings; renderAdmin(); }
-  else { const r = await call('me'); S.me = r.data; S.settings = r.data.settings; S.role === 'murid' ? renderMurid() : renderOrtu(); }
+  if (S.role === 'admin') { if (!S.page) S.page = window.innerWidth <= 900 ? 'menu' : 'dashboard'; const r = await call('bootstrap'); S.db = r.data.db; S.settings = r.data.settings; renderAdmin(); }
+  else if (S.role === 'guru') { const r = await call('guruData'); S.g = r.data; S.settings = r.data.settings; renderGuru(); }
+  else { const r = await call('me'); S.me = r.data; S.settings = r.data.settings; renderOrtu(); }
   if (DEMO && !$('.mode-flag')) { const f = document.createElement('div'); f.className = 'mode-flag'; f.textContent = 'MODE DEMO'; document.body.appendChild(f); }
 }
 async function init() {
@@ -559,9 +568,9 @@ async function init() {
 
 /* ---------------- MODE DEMO: tiruan backend Apps Script di browser ---------------- */
 const Mock = (() => {
-  const KEY = 'jmk_demo_db_v1';
+  const KEY = 'jmk_demo_db_v2';
   const SCH = {
-    Siswa: 1, Guru: 1, Jadwal: 1, Absensi: 1, AbsensiGuru: 1, SPP: 1, Laporan: 1, Nilai: 1, Bintang: 1, Soal: 1
+    Siswa: 1, Guru: 1, Jadwal: 1, Absensi: 1, AbsensiGuru: 1, Perkembangan: 1, SPP: 1, Gaji: 1, Laporan: 1, Nilai: 1, Bintang: 1, Soal: 1
   };
   let mem = null; const sessions = {};
   function seed() {
@@ -577,7 +586,7 @@ const Mock = (() => {
       ortu: n[3], waOrtu: '08123456789' + i, alamat: 'Cirebon', tglMulai: i < 6 ? addMonths(cur, -2) + '-05' : cur + '-02',
       level: String(n[4]), status: i === 7 ? 'Cuti' : 'Aktif', sppNominal: i === 3 ? '175000' : '', pin: i === 0 ? '1234' : rand4(), kodeOrtu: i === 0 ? '5678' : rand4(), catatan: ''
     }));
-    const Guru = [{ id: 'G01', nama: 'Bu Risya', wa: '081200000001', status: 'Aktif', catatan: 'Koordinator' }, { id: 'G02', nama: 'Kak Dinda', wa: '081200000002', status: 'Aktif', catatan: '' }];
+    const Guru = [{ id: 'G01', nama: 'Bu Risya', wa: '081200000001', status: 'Aktif', catatan: 'Koordinator', pin: '1111', tipeTarif: 'Per kehadiran', tarif: '75000' }, { id: 'G02', nama: 'Kak Dinda', wa: '081200000002', status: 'Aktif', catatan: '', pin: '2222', tipeTarif: 'Per jam', tarif: '35000' }];
     const Jadwal = [
       { id: 'J1', hari: 'Senin', sesi: '1', jamMulai: '14:00', jamSelesai: '15:00', tipe: 'Reguler', guruId: 'G01', siswaIds: 'JMK001,JMK002,JMK003', catatan: '' },
       { id: 'J2', hari: 'Senin', sesi: '2', jamMulai: '15:30', jamSelesai: '16:30', tipe: 'Semiprivat', guruId: 'G02', siswaIds: 'JMK004,JMK005', catatan: '' },
@@ -616,15 +625,19 @@ const Mock = (() => {
     });
     Bintang.push({ id: uid('BI'), siswaId: 'JMK001', tanggal: todayStr(), jumlah: '5', tipe: 'Bonus', keterangan: 'Rajin hadir sebulan penuh' });
     Bintang.push({ id: uid('BI'), siswaId: 'JMK002', tanggal: todayStr(), jumlah: '-5', tipe: 'Tukar', keterangan: 'Tukar pensil warna' });
-    const Soal = [
-      { id: 'SO1', level: '1', soal: '4 + 5', jawaban: '9', aktif: 'Ya' }, { id: 'SO2', level: '1', soal: '9 − 3', jawaban: '6', aktif: 'Ya' },
-      { id: 'SO3', level: '3', soal: '7 × 8', jawaban: '56', aktif: 'Ya' }, { id: 'SO4', level: '4', soal: '63 ÷ 9', jawaban: '7', aktif: 'Ya' }
-    ];
+    const SL = [['1', 'Jurus 0', ['1 + 1', '2 + 2', '3 + 1', '4 − 2', '3 − 1', '2 + 1 + 1', '4 − 3', '1 + 2', '3 + 1 − 2', '4 − 1', '2 + 2 − 3', '1 + 3']],
+      ['2', 'Jurus 1', ['4 + 1', '3 + 2', '4 + 2', '2 + 3']], ['2', 'Jurus 2', ['5 − 1', '6 − 2', '5 − 3', '7 − 4']],
+      ['3', 'Jurus 3', ['9 + 1', '8 + 3', '7 + 4', '6 + 5']], ['3', 'Jurus 4', ['11 − 2', '12 − 4', '13 − 6', '10 − 1']],
+      ['4', 'Ratusan', ['100 + 200', '350 + 120', '500 − 230']], ['4', 'Jurus 5', ['15 + 6', '25 + 7']], ['4', 'Jurus 6', ['16 − 7', '23 − 9']]];
+    const Soal = []; SL.forEach(([lv, j, arr]) => arr.forEach(q => Soal.push({ id: uid('SO'), level: lv, soal: q, jawaban: hitungSoal(q), aktif: 'Ya', jurus: j })));
+    const Perkembangan = [];
+    Siswa.slice(0, 5).forEach((sw, i) => { for (let k = 0; k < 3; k++) { const dt = new Date(); dt.setDate(dt.getDate() - (k * 3 + i % 2 + 1)); Perkembangan.push({ id: uid('PE'), tanggal: `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`, siswaId: sw.id, guruId: i % 2 ? 'G02' : 'G01', jurus: ['Jurus 0', 'Jurus 1', 'Jurus 3'][k], deskripsi: ['Sudah hafal posisi jari kanan, masih perlu dibantu saat menutup jari.', 'Lancar mengerjakan 10 soal tanpa bantuan, fokus bagus hari ini.', 'Mulai paham konsep teman kecil, perlu latihan di rumah 10 menit.'][k] }); } });
+    const Gaji = [];
     const Laporan = [{ id: 'LP1', siswaId: 'JMK001', periode: prev, level: '3', hadir: '7', pertemuan: '8', rataNilai: '86', bintang: '9', pencapaian: 'Sudah lancar perkalian 6–10 dengan jari. Kecepatan meningkat.', catatanGuru: 'Aisyah sangat fokus dan rajin. Pertahankan latihan 10 menit setiap hari di rumah ya!', dibuat: prev + '-28' }];
     return {
-      Siswa, Guru, Jadwal, Absensi, AbsensiGuru, SPP, Laporan, Nilai, Bintang, Soal,
+      Siswa, Guru, Jadwal, Absensi, AbsensiGuru, Perkembangan, SPP, Gaji, Laporan, Nilai, Bintang, Soal,
       Users: [{ id: 'U1', username: 'admin', pass: 'jarimath123', nama: 'Admin JariMath', role: 'admin' }],
-      Pengaturan: { namaLembaga: 'JariMath Kids', tagline: 'Berhitung Cepat dengan Jari Tangan', alamat: 'Jl. Contoh No. 12, Cirebon', noWa: '081234567890', nominalSPP: '150000', jatuhTempo: '10', tahunAjaran: '2026/2027', rekening: 'BCA 1234567890 a.n. JariMath Kids', pertemuanPerBulan: '8' }
+      Pengaturan: { namaLembaga: 'JariMath Kids', tagline: 'Berhitung Cepat dengan Jari Tangan', alamat: 'Jl. Contoh No. 12, Cirebon', noWa: '081234567890', nominalSPP: '150000', jatuhTempo: '10', tahunAjaran: '2026/2027', rekening: 'BCA 1234567890 a.n. JariMath Kids', pertemuanPerBulan: '8', soalPerLatihan: '10', levels: JSON.stringify(LV_DEFAULT) }
     };
   }
   function db() { if (!mem) { mem = store.get(KEY) || seed(); save(); } return mem; }
@@ -632,23 +645,25 @@ const Mock = (() => {
   function sess(t) { return sessions[t] || (store.get('jmk_demo_sess') || {})[t]; }
   function newId(t, rows) {
     if (t === 'Siswa') { const m = Math.max(0, ...rows.map(r => parseInt(String(r.id).replace(/\D/g, ''), 10) || 0)); return 'JMK' + String(m + 1).padStart(3, '0'); }
+    if (t === 'Guru') { const m = Math.max(0, ...rows.map(r => +(String(r.id).match(/^G(\d+)$/) || [0, 0])[1])); return 'G' + String(m + 1).padStart(2, '0'); }
     return uid(t.slice(0, 2).toUpperCase());
   }
   function upsert(t, row) {
     const rows = db()[t]; const r = Object.assign({}, row);
     Object.keys(r).forEach(k => r[k] = r[k] == null ? '' : String(r[k]));
     const i = r.id ? rows.findIndex(x => x.id === r.id) : -1;
-    if (i > -1) rows[i] = Object.assign(rows[i], r);
-    else { if (!r.id) r.id = newId(t, rows); if (t === 'SPP' && !r.noInvoice) r.noInvoice = invoiceNo(r.siswaId, r.periode); rows.push(r); }
+    if (i > -1) return Object.assign(rows[i], r);
+    if (!r.id) r.id = newId(t, rows); if (t === 'SPP' && !r.noInvoice) r.noInvoice = invoiceNo(r.siswaId, r.periode); rows.push(r);
     return r;
   }
-  function pub(s) { const { namaLembaga, tagline, alamat, noWa, rekening, jatuhTempo, nominalSPP, tahunAjaran } = s; return { namaLembaga, tagline, alamat, noWa, rekening, jatuhTempo, nominalSPP, tahunAjaran }; }
+  function pub(s) { const o = {}; ['namaLembaga', 'tagline', 'alamat', 'noWa', 'rekening', 'jatuhTempo', 'nominalSPP', 'tahunAjaran', 'portalUrl', 'soalPerLatihan', 'levels'].forEach(k => o[k] = s[k]); return o; }
   function handle(req) {
     const D = db(); const a = req.action;
     if (a === 'login') {
       let p = null;
       if (req.role === 'admin') { const u = D.Users.find(x => x.username.toLowerCase() === String(req.user).toLowerCase() && x.pass === req.pass); if (u) p = { id: u.id, nama: u.nama, username: u.username }; }
-      else { const s = D.Siswa.find(x => x.id.toUpperCase() === String(req.user).toUpperCase()); const k = req.role === 'murid' ? 'pin' : 'kodeOrtu'; if (s && s[k] === req.pass && s.status !== 'Berhenti') p = { id: s.id, nama: s.nama, panggilan: s.panggilan }; }
+      else if (req.role === 'guru') { const g = D.Guru.find(x => x.id.toUpperCase() === String(req.user).toUpperCase()); if (g && g.pin === req.pass && g.status !== 'Nonaktif') p = { id: g.id, nama: g.nama }; }
+      else { const s = D.Siswa.find(x => x.id.toUpperCase() === String(req.user).toUpperCase()); if (s && s.kodeOrtu === req.pass && s.status !== 'Berhenti') p = { id: s.id, nama: s.nama, panggilan: s.panggilan }; }
       if (!p) return { ok: false, error: req.role === 'admin' ? 'Username atau password salah.' : 'ID siswa atau kode salah.' };
       const token = uid('T'); sessions[token] = { role: req.role, uid: p.id };
       const all = store.get('jmk_demo_sess') || {}; all[token] = sessions[token]; store.set('jmk_demo_sess', all);
@@ -664,21 +679,39 @@ const Mock = (() => {
       if (a === 'remove') { D[req.table] = D[req.table].filter(r => r.id !== req.id); save(); return { ok: true }; }
       if (a === 'saveSettings') { Object.assign(D.Pengaturan, req.settings); save(); return { ok: true, settings: D.Pengaturan }; }
       if (a === 'changePassword') { const u = D.Users.find(x => x.id === s.uid); if (u.pass !== req.oldPass) return { ok: false, error: 'Password lama salah.' }; if (String(req.newPass).length < 6) return { ok: false, error: 'Password baru minimal 6 karakter.' }; u.pass = req.newPass; save(); return { ok: true }; }
+    } else if (s.role === 'guru') {
+      const J = x => JSON.parse(JSON.stringify(x)), tg = todayStr(), hm = () => { const n = new Date(); return `${pad(n.getHours())}:${pad(n.getMinutes())}`; };
+      if (a === 'guruData') {
+        const g = D.Guru.find(x => x.id === s.uid); const jad = D.Jadwal.filter(j => j.guruId === s.uid); const dj = {}; jad.forEach(j => j.siswaIds.split(',').forEach(x => x && (dj[x.trim()] = 1)));
+        const safe = Object.assign({}, g); delete safe.pin; delete safe.tarif; delete safe.tipeTarif;
+        return { ok: true, data: J({ guru: safe, settings: pub(D.Pengaturan), siswa: D.Siswa.filter(x => x.status === 'Aktif').map(x => ({ id: x.id, nama: x.nama, panggilan: x.panggilan, level: x.level, diajar: dj[x.id] ? '1' : '' })), Jadwal: jad, Absensi: D.Absensi, AbsensiGuru: D.AbsensiGuru.filter(r => r.guruId === s.uid), Perkembangan: D.Perkembangan.filter(r => r.guruId === s.uid || dj[r.siswaId]) }) };
+      }
+      if (a === 'guruAbsen') {
+        const row = D.AbsensiGuru.find(r => r.guruId === s.uid && r.tanggal === tg) || { tanggal: tg, guruId: s.uid, jamMasuk: '', jamKeluar: '', jamMengajar: '', catatan: '' };
+        if (req.mode === 'masuk') { row.status = 'Hadir'; row.jamMasuk = row.jamMasuk || hm(); }
+        else if (req.mode === 'pulang') { row.status = 'Hadir'; row.jamMasuk = row.jamMasuk || hm(); row.jamKeluar = hm(); row.jamMengajar = jamDiff(row.jamMasuk, row.jamKeluar) || '0'; }
+        else { row.status = req.mode; row.jamMengajar = '0'; }
+        const r = upsert('AbsensiGuru', row); save(); return { ok: true, row: r };
+      }
+      if (a === 'guruSaveAbsensi') { const rows = req.rows.map(r => { const ex = D.Absensi.find(e => e.tanggal === r.tanggal && e.siswaId === r.siswaId); return upsert('Absensi', Object.assign({}, r, { id: ex ? ex.id : '', guruId: s.uid })); }); save(); return { ok: true, rows }; }
+      if (a === 'guruSaveProgress') { const rows = req.rows.map(r => upsert('Perkembangan', Object.assign({}, r, { guruId: s.uid }))); save(); return { ok: true, rows }; }
+      if (a === 'guruDelProgress') { D.Perkembangan = D.Perkembangan.filter(r => !(r.id === req.id && r.guruId === s.uid)); save(); return { ok: true }; }
     } else {
       const sw = D.Siswa.find(x => x.id === s.uid);
       if (a === 'me') {
         const mine = t => D[t].filter(r => r.siswaId === s.uid);
+        const gn = id => (D.Guru.find(g => g.id === id) || {}).nama || '';
         const safe = Object.assign({}, sw); delete safe.pin; delete safe.kodeOrtu;
-        const jadwal = D.Jadwal.filter(j => j.siswaIds.split(',').includes(s.uid)).map(j => Object.assign({}, j, { guruNama: (D.Guru.find(g => g.id === j.guruId) || {}).nama || '' }));
-        return { ok: true, data: JSON.parse(JSON.stringify({ role: s.role, siswa: safe, settings: pub(D.Pengaturan), Absensi: mine('Absensi'), SPP: s.role === 'ortu' ? mine('SPP') : [], Laporan: s.role === 'ortu' ? mine('Laporan') : [], Nilai: mine('Nilai'), Bintang: mine('Bintang'), Jadwal: jadwal, Soal: s.role === 'murid' ? D.Soal.filter(q => q.aktif !== 'Tidak') : [] })) };
+        const jadwal = D.Jadwal.filter(j => j.siswaIds.split(',').includes(s.uid)).map(j => Object.assign({}, j, { guruNama: gn(j.guruId) }));
+        return { ok: true, data: JSON.parse(JSON.stringify({ role: 'ortu', siswa: safe, settings: pub(D.Pengaturan), Absensi: mine('Absensi'), SPP: mine('SPP'), Laporan: mine('Laporan'), Perkembangan: mine('Perkembangan').map(p => Object.assign({}, p, { guruNama: gn(p.guruId) })), Nilai: mine('Nilai'), Bintang: mine('Bintang'), Jadwal: jadwal, Soal: D.Soal.filter(q => q.aktif !== 'Tidak' && +q.level <= (+sw.level || 1)) })) };
       }
-      if (a === 'submitQuiz' && s.role === 'murid') {
+      if (a === 'submitQuiz') {
         const level = Math.max(1, Math.min(4, +req.level || 1));
         if (level > (+sw.level || 1)) return { ok: false, error: 'Level ini belum terbuka.' };
-        const total = Math.max(1, Math.min(50, +req.total || 10)), benar = Math.max(0, Math.min(total, +req.benar || 0));
+        const total = Math.max(1, Math.min(100, +req.total || 10)), benar = Math.max(0, Math.min(total, +req.benar || 0));
         const skor = Math.round(benar / total * 100), bintang = starsFor(skor), tg = todayStr();
         upsert('Nilai', { siswaId: s.uid, tanggal: tg, level, benar, total, skor, durasi: +req.durasi || 0, bintang });
-        if (bintang) upsert('Bintang', { siswaId: s.uid, tanggal: tg, jumlah: bintang, tipe: 'Latihan', keterangan: `Latihan Level ${level} (skor ${skor})` });
+        if (bintang) upsert('Bintang', { siswaId: s.uid, tanggal: tg, jumlah: bintang, tipe: 'Latihan', keterangan: `Latihan Level ${level}${req.jurus ? ' · ' + req.jurus : ''} (skor ${skor})` });
         save(); return { ok: true, result: { skor, bintang } };
       }
     }
@@ -692,15 +725,17 @@ const Mock = (() => {
    PORTAL ADMIN
    ========================================================= */
 const NAV = [
+  ['menu', 'Beranda', 'home', 'bg-pink'],
   ['dashboard', 'Dashboard', 'grid', 'bg-pink'],
   ['siswa', 'Data Siswa', 'users', 'bg-yellow'],
   ['jadwal', 'Jadwal Les', 'cal', 'bg-green'],
   ['absensi', 'Absensi Siswa', 'check', 'bg-blue'],
   ['spp', 'Pembayaran SPP', 'wallet', 'bg-pink'],
-  ['belajar', 'Belajar & Level', 'calc', 'bg-yellow'],
-  ['bintang', 'Bintang & Reward', 'star', 'bg-green'],
+  ['guru', 'Data & Kehadiran Guru', 'teacher', 'bg-purple'],
+  ['gaji', 'Rekap Gaji Guru', 'money', 'bg-green'],
+  ['belajar', 'Soal & Level', 'calc', 'bg-yellow'],
+  ['bintang', 'Bintang & Reward', 'star', 'bg-orange'],
   ['laporan', 'Laporan Bulanan', 'report', 'bg-blue'],
-  ['guru', 'Kehadiran Guru', 'teacher', 'bg-purple'],
   ['pengaturan', 'Pengaturan', 'settings', 'bg-orange']
 ];
 const ST = { H: 'Hadir', I: 'Izin', S: 'Sakit', A: 'Alpa' };
@@ -733,14 +768,14 @@ function renderAdmin() {
   $('#app').innerHTML = `<div class="shell">
     <aside class="side" id="side">
       <div class="brand"><img src="${LOGO}" alt=""><div><b>${esc(S.settings.namaLembaga || 'JariMath Kids')}</b><span>Portal Admin</span></div></div>
-      ${NAV.map(([k, l, i]) => `<button class="nav-item ${S.page === k ? 'on' : ''}" onclick="go('${k}')">${ic(i)}<span>${l}</span>${k === 'spp' && unpaid ? `<span class="cnt">${unpaid}</span>` : ''}</button>`).join('')}
+      ${NAV.map(([k, l, i]) => `<button class="nav-item ${k === 'menu' ? 'mobile-only' : ''} ${S.page === k ? 'on' : ''}" onclick="go('${k}')">${ic(i)}<span>${l}</span>${k === 'spp' && unpaid ? `<span class="cnt">${unpaid}</span>` : ''}</button>`).join('')}
       <div class="spacer"></div>
       <button class="nav-item" onclick="logout()">${ic('logout')}<span>Keluar</span></button>
     </aside>
     <div id="scrim" class="scrim hidden" onclick="toggleSide(false)"></div>
     <div class="main">
       <div class="topbar">
-        <button class="icon-btn menu-btn" onclick="toggleSide(true)">${ic('menu')}</button>
+        <button class="icon-btn menu-btn" onclick="toggleSide(true)">${ic('menu')}</button>${S.page !== 'menu' ? `<button class="icon-btn home-btn" title="Beranda" onclick="go('menu')">${ic('home')}</button>` : ''}
         <h2 id="pageTitle"></h2><div class="spacer"></div>
         <div class="user-pill"><span class="nm">${esc(S.profile.nama)}</span><div class="avatar">${initials(S.profile.nama)}</div></div>
       </div>
@@ -753,7 +788,7 @@ function go(p) { S.page = p; renderAdmin(); window.scrollTo(0, 0); }
 function renderPage() {
   const nav = NAV.find(n => n[0] === S.page) || NAV[0];
   $('#pageTitle').textContent = nav[1];
-  const fn = { dashboard: pgDashboard, siswa: pgSiswa, jadwal: pgJadwal, absensi: pgAbsensi, spp: pgSPP, belajar: pgBelajar, bintang: pgBintang, laporan: pgLaporan, guru: pgGuru, pengaturan: pgPengaturan }[S.page];
+  const fn = { menu: pgMenu, dashboard: pgDashboard, siswa: pgSiswa, jadwal: pgJadwal, absensi: pgAbsensi, spp: pgSPP, belajar: pgBelajar, bintang: pgBintang, laporan: pgLaporan, guru: pgGuru, gaji: pgGaji, pengaturan: pgPengaturan }[S.page];
   $('#page').innerHTML = fn();
 }
 const rerender = () => { if (S.role === 'admin') renderAdmin(); };
@@ -762,6 +797,13 @@ function tabs(key, items, def) {
   return `<div class="row"><div class="tabs">${items.map(([k, l]) => `<button class="${cur === k ? 'on' : ''}" onclick="S.tab['${key}']='${k}';renderPage()">${l}</button>`).join('')}</div></div>`;
 }
 const setF = (k, v) => { S.f[k] = v; renderPage(); };
+
+/* ================= BERANDA (menu kotak, untuk HP) ================= */
+function pgMenu() {
+  const unpaid = unpaidFor(thisPeriod()).length;
+  return `<div class="hero"><img src="${LOGO}" alt=""><div style="position:relative;z-index:1"><h2>Assalamu'alaikum 👋</h2><p>Selamat datang di sistem administrasi ${esc(S.settings.namaLembaga)}.</p></div></div>
+  <div class="tiles">${NAV.slice(1).map(([k, l, i, bg]) => `<button class="tile ${bg}" onclick="go('${k}')">${ic(i)}${l}${k === 'spp' && unpaid ? `<span class="badge b-red">${unpaid} belum bayar</span>` : ''}</button>`).join('')}</div>`;
+}
 
 /* ================= DASHBOARD ================= */
 function pgDashboard() {
@@ -777,7 +819,6 @@ function pgDashboard() {
   const latest = [...D('Nilai')].sort((a, b) => b.tanggal.localeCompare(a.tanggal)).slice(0, 5);
   return `
   <div class="hero"><img src="${LOGO}" alt=""><div style="position:relative;z-index:1"><h2>Assalamu'alaikum 👋</h2><p>Selamat datang di sistem administrasi ${esc(S.settings.namaLembaga)}. Hari ini ${hari}, ${fmtDateLong(today)}.</p></div></div>
-  <div class="tiles desktop-hide">${NAV.slice(1).map(([k, l, i, bg]) => `<button class="tile ${bg}" onclick="go('${k}')">${ic(i)}${l}</button>`).join('')}</div>
   <div class="grid g4">
     <div class="stat bg-pink"><span class="lbl">Siswa aktif</span><span class="val num">${aktif.length}</span><span class="sub">${baru} siswa baru bulan ini</span></div>
     <div class="stat bg-blue"><span class="lbl">Hadir hari ini</span><span class="val num">${absToday.filter(a => a.status === 'Hadir').length}<small style="font-size:16px"> / ${absToday.length}</small></span><span class="sub">${absToday.length ? 'sudah diabsen' : 'belum ada absensi'}</span></div>
@@ -843,10 +884,10 @@ function formSiswa(id) {
     <div class="field"><label>Nama orang tua/wali</label><input class="input" name="ortu" value="${esc(s.ortu || '')}"></div>
     <div class="field"><label>No. WhatsApp orang tua</label><input class="input" name="waOrtu" inputmode="tel" placeholder="08…" value="${esc(s.waOrtu || '')}"></div>
     <div class="field full"><label>Alamat</label><input class="input" name="alamat" value="${esc(s.alamat || '')}"></div>
-    <div class="field"><label>Level Jarimatika</label><select class="input" name="level">${opt(LEVELS.map(l => [l.n, l.judul]), s.level)}</select></div>
+    <div class="field"><label>Level Jarimatika</label><select class="input" name="level">${opt(LV().map(l => [l.n, l.judul]), s.level)}</select></div>
     <div class="field"><label>Status</label><select class="input" name="status">${opt(['Aktif', 'Cuti', 'Berhenti'], s.status)}</select></div>
     <div class="field"><label>Nominal SPP khusus</label><input class="input" name="sppNominal" inputmode="numeric" placeholder="Default ${rp(S.settings.nominalSPP)}" value="${esc(s.sppNominal || '')}"></div>
-    <div class="field"><label>PIN login murid</label><input class="input" name="pin" required inputmode="numeric" value="${esc(s.pin || '')}"></div>
+    <input type="hidden" name="pin" value="${esc(s.pin || '')}">
     <div class="field"><label>Kode akses orang tua</label><input class="input" name="kodeOrtu" required inputmode="numeric" value="${esc(s.kodeOrtu || '')}"></div>
     <div class="field full"><label>Catatan khusus</label><textarea class="input" name="catatan">${esc(s.catatan || '')}</textarea></div>
   </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fSiswa').requestSubmit()">Simpan</button>`, true);
@@ -862,7 +903,7 @@ function delSiswa(id) {
 }
 function waAkses(id) {
   const s = siswaById(id), st = S.settings;
-  openWa(s.waOrtu, `Assalamu'alaikum Bapak/Ibu ${s.ortu || ''},\n\nBerikut akses *Portal ${st.namaLembaga}* untuk ananda ${s.nama}:\n${st.portalUrl ? '\nLink: ' + st.portalUrl + '\n' : ''}\n👨‍👩‍👧 *Portal Orang Tua*\nID Siswa: ${s.id}\nKode Akses: ${s.kodeOrtu}\n(untuk melihat absensi, laporan & tagihan SPP)\n\n🧒 *Portal Murid* (latihan soal)\nID Siswa: ${s.id}\nPIN: ${s.pin}\n\nTerima kasih 🙏`);
+  openWa(s.waOrtu, `Assalamu'alaikum Bapak/Ibu ${s.ortu || ''},\n\nBerikut akses *Portal Orang Tua ${st.namaLembaga}* untuk ananda ${s.nama}:\n${st.portalUrl ? '\nLink: ' + st.portalUrl + '\n' : ''}\nID Siswa: *${s.id}*\nKode Akses: *${s.kodeOrtu}*\n\nDi portal ini Bapak/Ibu bisa melihat absensi, perkembangan harian, laporan bulanan, tagihan SPP, dan ananda bisa latihan soal Jarimatika sesuai levelnya ✋\n\nTerima kasih 🙏`);
 }
 
 /* ================= JADWAL ================= */
@@ -1085,22 +1126,23 @@ function sppRiwayat() {
   </tbody></table></div></div>`;
 }
 
-/* ================= BELAJAR & LEVEL ================= */
+/* ================= SOAL & LEVEL ================= */
 function pgBelajar() {
-  const t = S.tab.bel || 'level';
-  return tabs('bel', [['level', 'Perkembangan Level'], ['hasil', 'Hasil Latihan'], ['soal', 'Bank Soal']], 'level') + (t === 'level' ? belLevel() : t === 'hasil' ? belHasil() : belSoal());
+  const t = S.tab.bel || 'soal';
+  return tabs('bel', [['soal', 'Bank Soal'], ['level', 'Level Siswa'], ['harian', 'Perkembangan Harian'], ['hasil', 'Hasil Latihan']], 'soal') +
+    (t === 'soal' ? belSoal() : t === 'level' ? belLevel() : t === 'harian' ? belHarian() : belHasil());
 }
 function belLevel() {
   const counts = [1, 2, 3, 4].map(l => siswaAktif().filter(s => +s.level === l).length);
-  return `<div class="grid g4">${LEVELS.map((l, i) => `<div class="stat" style="background:${l.bg}"><span class="lbl">${l.judul}</span><span class="val num">${counts[i]}</span><span class="sub">${l.desc}</span></div>`).join('')}</div>
-  <div class="card"><h3>Perkembangan jurus / level siswa</h3><p class="small muted" style="margin:-4px 0 10px">Ganti level langsung dari kolom Level. Rekomendasi naik level muncul bila rata-rata skor ≥ 85 dari minimal 3 latihan di level saat ini.</p>
+  return `<div class="grid g4">${LV().map((l, i) => `<div class="stat" style="background:${l.bg}"><span class="lbl">${esc(l.judul)}</span><span class="val num">${counts[i]}</span><span class="sub">${esc(l.desc)}</span></div>`).join('')}</div>
+  <div class="card"><h3>Level siswa</h3><p class="small muted" style="margin:-4px 0 10px">Level menentukan soal latihan yang terbuka di Portal Orang Tua. Rekomendasi naik level muncul bila rata-rata skor ≥ 85 dari minimal 3 latihan di level saat ini.</p>
   <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th><th>Level</th><th class="c">Latihan</th><th class="c">Rata-rata (level ini)</th><th class="c">Skor terakhir</th><th class="c">⭐</th><th>Rekomendasi</th></tr></thead><tbody>
   ${siswaAktif().map(s => { const n = D('Nilai').filter(x => x.siswaId === s.id); const nl = n.filter(x => +x.level === +s.level); const avg = nl.length ? Math.round(sum(nl, x => x.skor) / nl.length) : null; const last = [...n].sort((a, b) => b.tanggal.localeCompare(a.tanggal))[0];
     const ready = avg !== null && avg >= 85 && nl.length >= 3 && +s.level < 4;
     return `<tr><td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.id)}</div></td>
-    <td><select class="input" style="padding:6px 10px;width:auto" onchange="setLevel('${s.id}',this.value)">${LEVELS.map(l => `<option value="${l.n}" ${+s.level === l.n ? 'selected' : ''}>Level ${l.n}</option>`).join('')}</select></td>
+    <td><select class="input" style="padding:6px 10px;width:auto" onchange="setLevel('${s.id}',this.value)">${LV().map(l => `<option value="${l.n}" ${+s.level === l.n ? 'selected' : ''}>${esc(l.judul)}</option>`).join('')}</select></td>
     <td class="c num">${n.length}</td><td class="c num">${avg === null ? '-' : `<b>${avg}</b>`}</td><td class="c num">${last ? `${last.skor} <span class="small muted">(L${last.level})</span>` : '-'}</td><td class="c num">${starTotal(s.id)}</td>
-    <td>${ready ? `<button class="btn sm yellow" onclick="setLevel('${s.id}',${+s.level + 1})">⬆ Naikkan ke Level ${+s.level + 1}</button>` : '<span class="small muted">—</span>'}</td></tr>`; }).join('') || '<tr><td colspan="7"><div class="empty">Belum ada siswa aktif</div></td></tr>'}
+    <td>${ready ? `<button class="btn sm yellow" onclick="setLevel('${s.id}',${+s.level + 1})">⬆ Naik ke Level ${+s.level + 1}</button>` : '<span class="small muted">—</span>'}</td></tr>`; }).join('') || '<tr><td colspan="7"><div class="empty">Belum ada siswa aktif</div></td></tr>'}
   </tbody></table></div></div>`;
 }
 async function setLevel(id, lv) { const s = siswaById(id); try { await saveRow('Siswa', { ...s, level: String(lv) }); toast(`${s.nama} sekarang Level ${lv}`); renderPage(); } catch (e) { toast(e.message, true); } }
@@ -1115,25 +1157,94 @@ function belHasil() {
   ${rows.slice(0, 300).map(x => `<tr><td class="nowrap">${fmtDate(x.tanggal)}</td><td><b>${esc(siswaById(x.siswaId).nama)}</b></td><td>${lvBadge(x.level)}</td><td class="c num">${esc(x.benar)}/${esc(x.total)}</td><td class="c num"><b style="color:${+x.skor >= 75 ? 'var(--green)' : +x.skor >= 60 ? 'var(--yellow-d)' : 'var(--red)'}">${esc(x.skor)}</b></td><td class="c num">${Math.floor(x.durasi / 60)}:${pad(x.durasi % 60)}</td><td class="c">${'⭐'.repeat(+x.bintang || 0) || '-'}</td></tr>`).join('') || '<tr><td colspan="7"><div class="empty">Belum ada hasil latihan</div></td></tr>'}
   </tbody></table></div></div>`;
 }
-function belSoal() {
-  const lv = S.f.sLv || '1';
-  const rows = D('Soal').filter(x => x.level == lv);
-  const L = LEVELS[+lv - 1];
-  return `<div class="card" style="background:${L.bg}"><div class="row"><div class="avatar" style="width:44px;height:44px;background:${L.color};color:#fff;font-size:20px">${lv}</div><div style="flex:1;min-width:200px"><h3 style="margin:0">${L.judul}</h3><div class="small">${L.desc} · <b>Tips jurus:</b> ${L.tip}</div></div></div></div>
-  <div class="card"><div class="card-head"><div class="chips">${LEVELS.map(l => `<button class="chip ${lv == l.n ? 'on' : ''}" onclick="setF('sLv','${l.n}')">Level ${l.n} (${D('Soal').filter(x => x.level == l.n).length})</button>`).join('')}</div></div>
-  <p class="small muted" style="margin-bottom:12px">Setiap latihan murid berisi 10 soal: maksimal 5 diambil acak dari bank soal ini, sisanya dibuat otomatis sesuai level. Bank soal boleh kosong.</p>
-  <form class="row" onsubmit="event.preventDefault();addSoal('${lv}',this)" style="margin-bottom:12px">
-    <input class="input" name="soal" placeholder="Soal, contoh: 7 + 8  atau  6 × 9" required style="flex:2;min-width:180px">
-    <input class="input" name="jawaban" placeholder="Jawaban" required inputmode="numeric" style="flex:1;min-width:100px">
-    <button class="btn">${ic('plus')} Tambah</button></form>
-  <div class="table-wrap"><table class="t"><thead><tr><th>Soal</th><th>Jawaban</th><th>Aktif</th><th></th></tr></thead><tbody>
-  ${rows.map(x => `<tr><td style="font-family:var(--font-h);font-size:18px">${esc(x.soal)}</td><td class="num"><b>${esc(x.jawaban)}</b></td><td><button class="badge ${x.aktif === 'Tidak' ? 'b-gray' : 'b-green'}" onclick="toggleSoal('${x.id}')">${x.aktif === 'Tidak' ? 'Nonaktif' : 'Aktif'}</button></td><td class="r"><button class="icon-btn" onclick="delSoal('${x.id}')">${ic('trash')}</button></td></tr>`).join('') || '<tr><td colspan="4"><div class="empty">Belum ada soal manual di level ini — latihan tetap jalan dengan soal otomatis.</div></td></tr>'}
-  </tbody></table></div>
-  <div style="margin-top:14px"><b class="small">Contoh soal otomatis level ini:</b> <span class="small muted">${Array.from({ length: 6 }, () => genSoal(+lv).q).join(' · ')}</span></div></div>`;
+
+/* ---------- bank soal (diisi admin, per level & jurus) ---------- */
+function normSoal(t) {
+  return String(t).replace(/=.*$/, '').replace(/\s*[xX*×]\s*/g, ' × ').replace(/\s*[:/÷]\s*/g, ' ÷ ').replace(/\s*\+\s*/g, ' + ').replace(/\s*[-−–]\s*/g, ' − ').replace(/\s+/g, ' ').trim();
 }
-async function addSoal(lv, form) { const f = formData(form); try { await saveRow('Soal', { level: lv, soal: f.soal.replace(/x/gi, '×').replace(/:/g, '÷'), jawaban: f.jawaban, aktif: 'Ya' }); toast('Soal ditambahkan'); renderPage(); } catch (e) { toast(e.message, true); } }
+function jurusSelect(L, sel, name = 'jurus') {
+  return `<select class="input" name="${name}">${L.jurusList.map(j => `<option ${sel === j ? 'selected' : ''}>${esc(j)}</option>`).join('')}<option value="" ${sel === '' && L.jurusList.length ? '' : ''}>(tanpa jurus)</option></select>`;
+}
+function belSoal() {
+  const lv = S.f.sLv || '1', L = lvOf(lv), jf = S.f.sJur || '';
+  const all = D('Soal').filter(x => x.level == lv);
+  const rows = all.filter(x => !jf || x.jurus === jf);
+  return `<div class="card" style="background:${L.bg}"><div class="row"><div class="avatar" style="width:44px;height:44px;background:${L.color};color:#fff;font-size:20px">${lv}</div><div style="flex:1;min-width:200px"><h3 style="margin:0">${esc(L.judul)}</h3><div class="small">${esc(L.desc)} · Jurus: <b>${L.jurusList.map(esc).join(', ') || '-'}</b></div></div><button class="btn sm ghost" onclick="go('pengaturan')">Ubah nama level / jurus</button></div></div>
+  <div class="card"><div class="card-head"><div class="chips">${LV().map(l => `<button class="chip ${lv == l.n ? 'on' : ''}" onclick="S.f.sJur='';setF('sLv','${l.n}')">Level ${l.n} (${D('Soal').filter(x => x.level == l.n).length})</button>`).join('')}</div></div>
+  <p class="small muted" style="margin-bottom:12px">Latihan di Portal Orang Tua <b>hanya memakai soal dari bank ini</b>, diacak, ${esc(S.settings.soalPerLatihan || 10)} soal per latihan. Jawaban terisi otomatis dari soal (bisa diubah). Penulisan: <b>+ − × ÷</b> atau <b>+ - x :</b></p>
+  <form id="fSoal" class="row" onsubmit="event.preventDefault();addSoal('${lv}')" style="margin-bottom:12px;align-items:flex-end">
+    <div class="field" style="min-width:140px"><label>Jurus</label>${jurusSelect(L, jf || L.jurusList[0] || '')}</div>
+    <div class="field" style="flex:2;min-width:170px"><label>Soal</label><input class="input" name="soal" placeholder="contoh: 4 + 1   atau   7 + 5 − 3" required oninput="this.form.jawaban.value=hitungSoal(this.value)"></div>
+    <div class="field" style="flex:1;min-width:90px"><label>Jawaban</label><input class="input" name="jawaban" required inputmode="numeric"></div>
+    <button class="btn">${ic('plus')} Tambah</button>
+    <button type="button" class="btn ghost" onclick="formSoalMassal('${lv}')">Tambah banyak sekaligus</button>
+  </form>
+  <div class="chips" style="margin-bottom:8px"><button class="chip ${!jf ? 'on' : ''}" onclick="setF('sJur','')">Semua (${all.length})</button>${L.jurusList.map(j => `<button class="chip ${jf === j ? 'on' : ''}" onclick="setF('sJur','${esc(j)}')">${esc(j)} (${all.filter(x => x.jurus === j).length})</button>`).join('')}</div>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Soal</th><th>Jawaban</th><th>Jurus</th><th>Aktif</th><th></th></tr></thead><tbody>
+  ${rows.map(x => `<tr><td style="font-family:var(--font-h);font-size:18px">${esc(x.soal)}</td><td class="num"><b>${esc(x.jawaban)}</b></td><td>${x.jurus ? `<span class="badge b-pink">${esc(x.jurus)}</span>` : '-'}</td><td><button class="badge ${x.aktif === 'Tidak' ? 'b-gray' : 'b-green'}" onclick="toggleSoal('${x.id}')">${x.aktif === 'Tidak' ? 'Nonaktif' : 'Aktif'}</button></td><td class="r nowrap"><button class="icon-btn" onclick="editSoal('${x.id}')">${ic('edit')}</button><button class="icon-btn" onclick="delSoal('${x.id}')">${ic('trash')}</button></td></tr>`).join('') || '<tr><td colspan="5"><div class="empty">Belum ada soal di sini. Latihan level ini belum bisa dipakai orang tua sampai soal ditambahkan.</div></td></tr>'}
+  </tbody></table></div></div>`;
+}
+async function addSoal(lv) {
+  const f = formData($('#fSoal')); const soal = normSoal(f.soal);
+  if (!soal || f.jawaban === '') return toast('Lengkapi soal & jawaban', true);
+  try { await saveRow('Soal', { level: lv, soal, jawaban: f.jawaban, aktif: 'Ya', jurus: f.jurus }); S.f.sJur = f.jurus; toast('Soal ditambahkan'); renderPage(); setTimeout(() => { const el = $('#fSoal [name=soal]'); if (el) el.focus(); }, 30); } catch (e) { toast(e.message, true); }
+}
+function formSoalMassal(lv) {
+  const L = lvOf(lv);
+  modal(`Tambah banyak soal — ${esc(L.judul)}`, `<form id="fMass" class="form-grid" onsubmit="event.preventDefault();saveSoalMassal('${lv}')">
+    <div class="field full"><label>Jurus</label>${jurusSelect(L, S.f.sJur || L.jurusList[0] || '')}</div>
+    <div class="field full"><label>Daftar soal — satu soal per baris</label><textarea class="input" name="list" style="min-height:220px;font-family:var(--font-h);font-size:17px" placeholder="4 + 1\n3 + 1 − 2\n5 − 4\n2 + 2 = 4"></textarea>
+    <span class="small muted">Jawaban dihitung otomatis. Boleh juga tulis jawabannya sendiri setelah tanda <b>=</b>.</span></div>
+  </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fMass').requestSubmit()">Simpan Semua</button>`, true);
+}
+async function saveSoalMassal(lv) {
+  const f = formData($('#fMass'));
+  const rows = [], bad = [];
+  f.list.split(/\n/).map(x => x.trim()).filter(Boolean).forEach(line => {
+    const m = line.split('='); const soal = normSoal(m[0]); const jawab = (m[1] || '').trim() || hitungSoal(m[0]);
+    if (soal && jawab !== '') rows.push({ level: lv, soal, jawaban: jawab, aktif: 'Ya', jurus: f.jurus }); else bad.push(line);
+  });
+  if (!rows.length) return toast('Tidak ada soal yang valid', true);
+  try { await saveRows('Soal', rows); closeModal(); S.f.sJur = f.jurus; toast(`${rows.length} soal ditambahkan${bad.length ? ` · ${bad.length} baris dilewati` : ''}`); renderPage(); } catch (e) { toast(e.message, true); }
+}
+function editSoal(id) {
+  const x = D('Soal').find(s => s.id === id), L = lvOf(x.level);
+  modal('Edit Soal', `<form id="fES" class="form-grid" onsubmit="event.preventDefault();saveEditSoal('${id}')">
+    <div class="field"><label>Level</label><select class="input" name="level">${LV().map(l => `<option value="${l.n}" ${+x.level === l.n ? 'selected' : ''}>${esc(l.judul)}</option>`).join('')}</select></div>
+    <div class="field"><label>Jurus</label><select class="input" name="jurus">${[...new Set(LV().flatMap(l => l.jurusList))].map(j => `<option ${x.jurus === j ? 'selected' : ''}>${esc(j)}</option>`).join('')}<option value="" ${!x.jurus ? 'selected' : ''}>(tanpa jurus)</option></select></div>
+    <div class="field"><label>Soal</label><input class="input" name="soal" value="${esc(x.soal)}" oninput="this.form.jawaban.value=hitungSoal(this.value)"></div>
+    <div class="field"><label>Jawaban</label><input class="input" name="jawaban" value="${esc(x.jawaban)}"></div>
+  </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fES').requestSubmit()">Simpan</button>`);
+}
+async function saveEditSoal(id) { const f = formData($('#fES')); const x = D('Soal').find(s => s.id === id); try { await saveRow('Soal', { ...x, ...f, soal: normSoal(f.soal) }); closeModal(); renderPage(); } catch (e) { toast(e.message, true); } }
 async function toggleSoal(id) { const x = D('Soal').find(s => s.id === id); await saveRow('Soal', { ...x, aktif: x.aktif === 'Tidak' ? 'Ya' : 'Tidak' }); renderPage(); }
 function delSoal(id) { confirmBox('Hapus soal ini?', async () => { await removeRow('Soal', id); renderPage(); }); }
+
+/* ---------- perkembangan harian (ditulis guru, admin bisa lihat/ubah) ---------- */
+function belHarian() {
+  const p = S.f.phP || thisPeriod(), sid = S.f.phS || '', gid = S.f.phG || '';
+  const rows = D('Perkembangan').filter(x => x.tanggal.startsWith(p) && (!sid || x.siswaId === sid) && (!gid || x.guruId === gid)).sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+  return `<div class="card"><div class="card-head">
+    <select class="input" style="max-width:180px" onchange="setF('phP',this.value)">${monthOptions(p)}</select>
+    <select class="input" style="max-width:220px" onchange="setF('phS',this.value)"><option value="">Semua siswa</option>${siswaAktif().map(s => `<option value="${s.id}" ${sid === s.id ? 'selected' : ''}>${esc(s.nama)}</option>`).join('')}</select>
+    <select class="input" style="max-width:180px" onchange="setF('phG',this.value)"><option value="">Semua guru</option>${D('Guru').map(g => `<option value="${g.id}" ${gid === g.id ? 'selected' : ''}>${esc(g.nama)}</option>`).join('')}</select>
+    <div class="spacer"></div><button class="btn" onclick="formHarian()">${ic('plus')} Tambah Catatan</button></div>
+    <p class="small muted" style="margin-bottom:8px">Catatan ini ditulis guru lewat Portal Guru dan tampil di Portal Orang Tua.</p>
+    ${rows.map(x => `<div class="li" style="align-items:flex-start"><div class="avatar" style="background:var(--purple-50)">${initials(siswaById(x.siswaId).nama)}</div><div class="meta"><b>${esc(siswaById(x.siswaId).nama)} ${x.jurus ? `<span class="badge b-pink">${esc(x.jurus)}</span>` : ''}</b><div style="white-space:pre-line">${esc(x.deskripsi)}</div><span class="small muted">${dayName(x.tanggal)}, ${fmtDate(x.tanggal)} · ${esc(guruById(x.guruId).nama)}</span></div><button class="icon-btn" onclick="formHarian('${x.id}')">${ic('edit')}</button><button class="icon-btn" onclick="delHarian('${x.id}')">${ic('trash')}</button></div>`).join('') || '<div class="empty">Belum ada catatan perkembangan di bulan ini</div>'}
+  </div>`;
+}
+function formHarian(id) {
+  const x = id ? D('Perkembangan').find(r => r.id === id) : { tanggal: todayStr(), siswaId: '', guruId: (D('Guru')[0] || {}).id, jurus: '', deskripsi: '' };
+  modal(id ? 'Edit Perkembangan Harian' : 'Tambah Perkembangan Harian', `<form id="fPH" class="form-grid" onsubmit="event.preventDefault();saveHarian('${id || ''}')">
+    <div class="field"><label>Tanggal</label><input class="input" type="date" name="tanggal" value="${esc(x.tanggal)}"></div>
+    <div class="field"><label>Guru</label><select class="input" name="guruId">${D('Guru').map(g => `<option value="${g.id}" ${g.id === x.guruId ? 'selected' : ''}>${esc(g.nama)}</option>`).join('')}</select></div>
+    <div class="field"><label>Siswa</label><select class="input" name="siswaId" required><option value="">— pilih —</option>${siswaAktif().map(s => `<option value="${s.id}" ${s.id === x.siswaId ? 'selected' : ''}>${esc(s.nama)}</option>`).join('')}</select></div>
+    <div class="field"><label>Jurus</label><select class="input" name="jurus"><option value="">-</option>${[...new Set(LV().flatMap(l => l.jurusList))].map(j => `<option ${x.jurus === j ? 'selected' : ''}>${esc(j)}</option>`).join('')}</select></div>
+    <div class="field full"><label>Deskripsi perkembangan</label><textarea class="input" name="deskripsi" required>${esc(x.deskripsi)}</textarea></div>
+  </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fPH').requestSubmit()">Simpan</button>`);
+}
+async function saveHarian(id) { const f = formData($('#fPH')); try { await saveRow('Perkembangan', Object.assign(id ? { id } : {}, f)); closeModal(); toast('Tersimpan'); renderPage(); } catch (e) { toast(e.message, true); } }
+function delHarian(id) { confirmBox('Hapus catatan ini?', async () => { await removeRow('Perkembangan', id); renderPage(); }); }
 
 /* ================= BINTANG & REWARD ================= */
 function pgBintang() {
@@ -1188,13 +1299,14 @@ function pgLaporan() {
 function formLaporan(sid, p) {
   const s = siswaById(sid), l = D('Laporan').find(x => x.siswaId === sid && x.periode === p), a = l || lapAuto(s, p);
   modal(`Laporan ${esc(s.nama)} — ${fmtPeriod(p)}`, `<form id="fLap" class="form-grid" onsubmit="event.preventDefault();saveLaporan('${sid}','${p}','${l ? l.id : ''}')">
-    <div class="field"><label>Level / jurus</label><select class="input" name="level">${LEVELS.map(x => `<option value="${x.n}" ${+a.level === x.n ? 'selected' : ''}>${x.judul}</option>`).join('')}</select></div>
+    <div class="field"><label>Level / jurus</label><select class="input" name="level">${LV().map(x => `<option value="${x.n}" ${+a.level === x.n ? 'selected' : ''}>${x.judul}</option>`).join('')}</select></div>
     <div class="field"><label>Rata-rata nilai latihan</label><input class="input" name="rataNilai" inputmode="numeric" value="${esc(a.rataNilai)}"></div>
     <div class="field"><label>Jumlah hadir</label><input class="input" name="hadir" inputmode="numeric" value="${esc(a.hadir)}"></div>
     <div class="field"><label>Jumlah pertemuan</label><input class="input" name="pertemuan" inputmode="numeric" value="${esc(a.pertemuan)}"></div>
     <div class="field"><label>Bintang bulan ini</label><input class="input" name="bintang" inputmode="numeric" value="${esc(a.bintang)}"></div>
     <div class="field full"><label>Pencapaian / perkembangan jurus</label><textarea class="input" name="pencapaian" placeholder="contoh: Sudah lancar penjumlahan satuan dengan jari kanan…">${esc(l ? l.pencapaian : '')}</textarea></div>
     <div class="field full"><label>Catatan guru untuk orang tua</label><textarea class="input" name="catatanGuru" placeholder="contoh: Ananda fokus dan semangat, mohon latihan 10 menit di rumah…">${esc(l ? l.catatanGuru : '')}</textarea></div>
+    ${(() => { const n = D('Perkembangan').filter(x => x.siswaId === sid && x.tanggal.startsWith(p)).sort((a, b) => a.tanggal.localeCompare(b.tanggal)); return n.length ? `<div class="full" style="background:var(--yellow-50);border-radius:12px;padding:10px 12px"><b class="small">Catatan perkembangan harian dari guru bulan ini:</b>${n.map(x => `<div class="small" style="margin-top:4px">• <b>${fmtDate(x.tanggal)}</b>${x.jurus ? ' [' + esc(x.jurus) + ']' : ''} — ${esc(x.deskripsi)} <span class="muted">(${esc(guruById(x.guruId).nama)})</span></div>`).join('')}</div>` : ''; })()}
   </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fLap').requestSubmit()">Simpan Laporan</button>`, true);
 }
 async function saveLaporan(sid, p, id) {
@@ -1202,7 +1314,7 @@ async function saveLaporan(sid, p, id) {
   try { const r = await saveRow('Laporan', Object.assign(id ? { id } : {}, f, { siswaId: sid, periode: p, dibuat: todayStr() })); closeModal(); toast('Laporan tersimpan'); renderPage(); viewLaporan(r.id); } catch (e) { toast(e.message, true); }
 }
 function laporanHtml(s, l, settings, abs) {
-  const L = LEVELS[(+l.level || 1) - 1];
+  const L = lvOf(l.level);
   const pct = +l.pertemuan ? Math.round(+l.hadir / +l.pertemuan * 100) : 0;
   return `<div class="inv">
     <div class="inv-h"><img src="${LOGO}" alt=""><div style="flex:1"><h2>Laporan Perkembangan Belajar</h2><div class="small muted">${esc(settings.namaLembaga)} · ${esc(settings.tagline || '')}</div></div><div style="text-align:right"><b>${fmtPeriod(l.periode)}</b><div class="small muted">TA ${esc(settings.tahunAjaran || '')}</div></div></div>
@@ -1225,13 +1337,13 @@ function viewLaporan(id) {
 }
 function waLaporan(id) {
   const l = D('Laporan').find(x => x.id === id), s = siswaById(l.siswaId), st = S.settings;
-  openWa(s.waOrtu, `Assalamu'alaikum Bapak/Ibu ${s.ortu || ''},\n\nBerikut *Laporan Perkembangan Belajar* ananda *${s.nama}* bulan ${fmtPeriod(l.periode)} di ${st.namaLembaga}:\n\n📅 Kehadiran: ${l.hadir}/${l.pertemuan} pertemuan\n🧮 Level: ${LEVELS[(+l.level || 1) - 1].judul}\n📝 Rata-rata nilai latihan: ${l.rataNilai || '-'}\n⭐ Bintang: ${l.bintang || 0}\n\n*Pencapaian:*\n${l.pencapaian || '-'}\n\n*Catatan guru:*\n${l.catatanGuru || '-'}\n\nLaporan lengkap dapat dilihat & dicetak di Portal Orang Tua${st.portalUrl ? ': ' + st.portalUrl : ''}. Terima kasih 🙏`);
+  openWa(s.waOrtu, `Assalamu'alaikum Bapak/Ibu ${s.ortu || ''},\n\nBerikut *Laporan Perkembangan Belajar* ananda *${s.nama}* bulan ${fmtPeriod(l.periode)} di ${st.namaLembaga}:\n\n📅 Kehadiran: ${l.hadir}/${l.pertemuan} pertemuan\n🧮 Level: ${lvOf(l.level).judul}\n📝 Rata-rata nilai latihan: ${l.rataNilai || '-'}\n⭐ Bintang: ${l.bintang || 0}\n\n*Pencapaian:*\n${l.pencapaian || '-'}\n\n*Catatan guru:*\n${l.catatanGuru || '-'}\n\nLaporan lengkap dapat dilihat & dicetak di Portal Orang Tua${st.portalUrl ? ': ' + st.portalUrl : ''}. Terima kasih 🙏`);
 }
 
 /* ================= GURU ================= */
 function pgGuru() {
-  const t = S.tab.guru || 'hadir';
-  return tabs('guru', [['hadir', 'Kehadiran Guru'], ['rekap', 'Rekap Jam Mengajar'], ['data', 'Data Guru']], 'hadir') + (t === 'hadir' ? guruHadir() : t === 'rekap' ? guruRekap() : guruData());
+  const t = S.tab.guru || 'data';
+  return tabs('guru', [['data', 'Data Guru'], ['hadir', 'Kehadiran Guru'], ['rekap', 'Rekap Jam Mengajar']], 'data') + (t === 'data' ? guruData() : t === 'hadir' ? guruHadir() : guruRekap());
 }
 function jamDiff(a, b) { if (!a || !b) return ''; const [h1, m1] = a.split(':').map(Number), [h2, m2] = b.split(':').map(Number); const d = (h2 * 60 + m2 - h1 * 60 - m1) / 60; return d > 0 ? String(Math.round(d * 2) / 2) : ''; }
 function guruHadir() {
@@ -1281,22 +1393,109 @@ function csvGuru(p) {
 }
 function guruData() {
   return `<div class="card"><div class="card-head"><h3>Data guru / tentor</h3><div class="spacer"></div><button class="btn" onclick="formGuru()">${ic('plus')} Tambah Guru</button></div>
-  <div class="table-wrap"><table class="t"><thead><tr><th>Nama</th><th>WhatsApp</th><th>Jadwal mengajar</th><th>Status</th><th></th></tr></thead><tbody>
-  ${D('Guru').map(g => { const js = D('Jadwal').filter(j => j.guruId === g.id); return `<tr><td><b>${esc(g.nama)}</b><div class="small muted">${esc(g.catatan || '')}</div></td><td>${esc(g.wa || '-')}</td><td class="small">${js.map(j => `${j.hari} S${j.sesi} ${j.jamMulai}`).join(' · ') || '-'}</td><td>${stBadge(g.status || 'Aktif')}</td>
-  <td class="nowrap r"><button class="icon-btn" onclick="formGuru('${g.id}')">${ic('edit')}</button><button class="icon-btn" onclick="delGuru('${g.id}')">${ic('trash')}</button></td></tr>`; }).join('') || '<tr><td colspan="5"><div class="empty">Belum ada guru</div></td></tr>'}
+  <p class="small muted" style="margin:-4px 0 10px">Guru login ke <b>Portal Guru</b> memakai ID & PIN di bawah. Klik ikon 🔑 untuk mengirim akses lewat WhatsApp.</p>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Nama</th><th>WhatsApp</th><th>Login</th><th>Tarif</th><th>Jadwal mengajar</th><th>Status</th><th></th></tr></thead><tbody>
+  ${D('Guru').map(g => { const js = D('Jadwal').filter(j => j.guruId === g.id); return `<tr><td><b>${esc(g.nama)}</b><div class="small muted">${esc(g.catatan || '')}</div></td><td>${esc(g.wa || '-')}</td>
+  <td class="nowrap small">ID <b>${esc(g.id)}</b><br>PIN <b>${esc(g.pin || '-')}</b></td>
+  <td class="nowrap small">${rp(g.tarif)}<br><span class="muted">${esc(g.tipeTarif || 'Per kehadiran')}</span></td>
+  <td class="small">${js.map(j => `${j.hari} S${j.sesi} ${j.jamMulai}`).join(' · ') || '-'}</td><td>${stBadge(g.status || 'Aktif')}</td>
+  <td class="nowrap r"><button class="icon-btn" title="Kirim akses portal guru" onclick="waGuru('${g.id}')">${ic('key')}</button><button class="icon-btn" onclick="formGuru('${g.id}')">${ic('edit')}</button><button class="icon-btn" onclick="delGuru('${g.id}')">${ic('trash')}</button></td></tr>`; }).join('') || '<tr><td colspan="7"><div class="empty">Belum ada guru</div></td></tr>'}
   </tbody></table></div></div>`;
 }
 function formGuru(id) {
-  const g = id ? guruById(id) : { status: 'Aktif' };
-  modal(id ? 'Edit Guru' : 'Tambah Guru', `<form id="fGuru" class="form-grid" onsubmit="event.preventDefault();saveGuru('${id || ''}')">
-    <div class="field full"><label>Nama *</label><input class="input" name="nama" required value="${esc(g.nama || '')}"></div>
-    <div class="field"><label>No. WhatsApp</label><input class="input" name="wa" value="${esc(g.wa || '')}"></div>
+  const g = id ? guruById(id) : { status: 'Aktif', pin: rand4(), tipeTarif: 'Per kehadiran', tarif: '' };
+  modal(id ? `Edit Guru — ${esc(g.id)}` : 'Tambah Guru', `<form id="fGuru" class="form-grid" onsubmit="event.preventDefault();saveGuru('${id || ''}')">
+    <div class="field full"><label>Nama guru *</label><input class="input" name="nama" required value="${esc(g.nama || '')}"></div>
+    <div class="field"><label>No. WhatsApp</label><input class="input" name="wa" inputmode="tel" value="${esc(g.wa || '')}"></div>
     <div class="field"><label>Status</label><select class="input" name="status">${['Aktif', 'Nonaktif'].map(x => `<option ${g.status === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>PIN login Portal Guru</label><input class="input" name="pin" required inputmode="numeric" value="${esc(g.pin || '')}"></div>
+    <div class="field"><label>Cara hitung gaji</label><select class="input" name="tipeTarif">${['Per kehadiran', 'Per jam', 'Bulanan tetap'].map(x => `<option ${g.tipeTarif === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Tarif (Rp)</label><input class="input" name="tarif" inputmode="numeric" placeholder="contoh: 50000" value="${esc(g.tarif || '')}"></div>
     <div class="field full"><label>Catatan</label><input class="input" name="catatan" value="${esc(g.catatan || '')}"></div>
   </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fGuru').requestSubmit()">Simpan</button>`);
 }
-async function saveGuru(id) { const f = formData($('#fGuru')); try { await saveRow('Guru', Object.assign(id ? { id } : {}, f)); closeModal(); toast('Data guru tersimpan'); renderPage(); } catch (e) { toast(e.message, true); } }
-function delGuru(id) { confirmBox(`Hapus guru <b>${esc(guruById(id).nama)}</b>?`, async () => { await removeRow('Guru', id); renderPage(); }); }
+async function saveGuru(id) {
+  const f = formData($('#fGuru')); f.tarif = String(f.tarif).replace(/\D/g, '') || '0';
+  try { const r = await saveRow('Guru', Object.assign(id ? { ...guruById(id) } : {}, f, id ? { id } : {})); closeModal(); toast(`Data ${r.nama} tersimpan (${r.id})`); renderPage(); } catch (e) { toast(e.message, true); }
+}
+function delGuru(id) { confirmBox(`Hapus guru <b>${esc(guruById(id).nama)}</b>? Saran: ubah status menjadi Nonaktif bila hanya berhenti mengajar.`, async () => { await removeRow('Guru', id); renderPage(); }); }
+function waGuru(id) {
+  const g = guruById(id), st = S.settings;
+  openWa(g.wa, `Assalamu'alaikum ${g.nama},\n\nBerikut akses *Portal Guru ${st.namaLembaga}*:\n${st.portalUrl ? '\nLink: ' + st.portalUrl + '\n' : ''}\nID Guru: *${g.id}*\nPIN: *${g.pin}*\n\nDi portal ini Anda bisa absen masuk/pulang, mengisi absensi siswa, dan menulis perkembangan harian siswa. Terima kasih 🙏`);
+}
+
+/* ================= REKAP GAJI GURU ================= */
+function gajiCalc(g, p) {
+  const r = D('AbsensiGuru').filter(a => a.guruId === g.id && a.tanggal.startsWith(p));
+  const hadir = r.filter(x => x.status === 'Hadir').length, jam = sum(r, x => x.jamMengajar);
+  const tarif = +g.tarif || 0, tipe = g.tipeTarif || 'Per kehadiran';
+  const pokok = tipe === 'Per jam' ? Math.round(tarif * jam) : tipe === 'Bulanan tetap' ? tarif : tarif * hadir;
+  const rec = D('Gaji').find(x => x.guruId === g.id && x.periode === p);
+  const bonus = +(rec && rec.bonus) || 0, pot = +(rec && rec.potongan) || 0;
+  return { hadir, izin: r.filter(x => x.status !== 'Hadir').length, jam, tarif, tipe, pokok, bonus, pot, total: pokok + bonus - pot, rec, paid: !!(rec && rec.tanggalBayar) };
+}
+function pgGaji() {
+  const p = S.f.gjP || thisPeriod();
+  const rows = D('Guru').filter(g => g.status !== 'Nonaktif' || D('AbsensiGuru').some(a => a.guruId === g.id && a.tanggal.startsWith(p))).map(g => ({ g, c: gajiCalc(g, p) }));
+  const tot = sum(rows, r => r.c.total), paid = sum(rows.filter(r => r.c.paid), r => r.c.total);
+  return `<div class="grid g3">
+    <div class="stat bg-blue"><span class="lbl">Total gaji ${fmtPeriod(p)}</span><span class="val num">${rp(tot)}</span><span class="sub">${rows.length} guru</span></div>
+    <div class="stat bg-green"><span class="lbl">Sudah dibayar</span><span class="val num" style="color:#0E7A41">${rp(paid)}</span><span class="sub">${rows.filter(r => r.c.paid).length} guru</span></div>
+    <div class="stat bg-red"><span class="lbl" style="color:#B4282D">Belum dibayar</span><span class="val num" style="color:var(--red)">${rp(tot - paid)}</span><span class="sub">${rows.filter(r => !r.c.paid).length} guru</span></div></div>
+  <div class="card"><div class="card-head"><select class="input" style="max-width:200px" onchange="setF('gjP',this.value)">${monthOptions(p)}</select><span class="small muted">Dihitung dari menu Kehadiran Guru × tarif di Data Guru</span><div class="spacer"></div><button class="btn ghost" onclick="csvGaji('${p}')">${ic('download')} Unduh Excel (CSV)</button></div>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Guru</th><th>Cara hitung</th><th class="c">Hadir</th><th class="c">Jam</th><th class="r">Gaji pokok</th><th class="r">Bonus</th><th class="r">Potongan</th><th class="r">Total</th><th>Status</th><th></th></tr></thead><tbody>
+  ${rows.map(({ g, c }) => `<tr class="${c.paid ? '' : 'unpaid'}"><td><b>${esc(g.nama)}</b><div class="small muted">${esc(g.id)}</div></td>
+    <td class="small nowrap">${esc(c.tipe)}<br><span class="muted">${rp(c.tarif)}</span></td><td class="c num">${c.hadir}</td><td class="c num">${c.jam}</td>
+    <td class="r num">${rp(c.pokok)}</td><td class="r num">${c.bonus ? rp(c.bonus) : '-'}</td><td class="r num">${c.pot ? '−' + rp(c.pot) : '-'}</td><td class="r num"><b>${rp(c.total)}</b></td>
+    <td>${c.paid ? `<span class="badge b-green">✓ Dibayar</span><div class="small muted">${fmtDate(c.rec.tanggalBayar)}</div>` : '<span class="badge b-red">Belum</span>'}</td>
+    <td class="nowrap r">${c.paid ? `<button class="icon-btn" title="Batalkan status dibayar" onclick="bayarGaji('${g.id}','${p}',false)">${ic('x')}</button>` : `<button class="btn sm green" onclick="bayarGaji('${g.id}','${p}',true)">Bayar</button>`}<button class="icon-btn" title="Bonus / potongan" onclick="formGaji('${g.id}','${p}')">${ic('edit')}</button><button class="icon-btn" title="Slip gaji" onclick="slipGaji('${g.id}','${p}')">${ic('file')}</button></td></tr>`).join('') || '<tr><td colspan="10"><div class="empty">Belum ada data guru</div></td></tr>'}
+  </tbody></table></div></div>`;
+}
+function formGaji(gid, p) {
+  const g = guruById(gid), c = gajiCalc(g, p), r = c.rec || {};
+  modal(`Bonus & potongan — ${esc(g.nama)} (${fmtPeriod(p)})`, `<form id="fGj" class="form-grid" onsubmit="event.preventDefault();saveGaji('${gid}','${p}')">
+    <div class="field"><label>Gaji pokok</label><div class="input" style="background:#FAF6F9">${rp(c.pokok)} <span class="small muted">(${c.tipe})</span></div></div>
+    <div class="field"><label>Bonus (Rp)</label><input class="input" name="bonus" inputmode="numeric" value="${esc(r.bonus || '')}"></div>
+    <div class="field"><label>Potongan (Rp)</label><input class="input" name="potongan" inputmode="numeric" value="${esc(r.potongan || '')}"></div>
+    <div class="field full"><label>Catatan</label><input class="input" name="catatan" placeholder="contoh: bonus les tambahan, potongan kasbon" value="${esc(r.catatan || '')}"></div>
+  </form>`, `<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fGj').requestSubmit()">Simpan</button>`);
+}
+async function saveGaji(gid, p, extra = {}) {
+  const g = guruById(gid), c = gajiCalc(g, p);
+  const f = $('#fGj') ? formData($('#fGj')) : {};
+  ['bonus', 'potongan'].forEach(k => { if (k in f) f[k] = String(f[k]).replace(/\D/g, ''); });
+  const row = Object.assign({ guruId: gid, periode: p, bonus: '', potongan: '', catatan: '', tanggalBayar: '' }, c.rec || {}, f, extra);
+  row.total = String((c.pokok) + (+row.bonus || 0) - (+row.potongan || 0));
+  try { await saveRow('Gaji', row); closeModal(); toast('Tersimpan'); renderPage(); } catch (e) { toast(e.message, true); }
+}
+function bayarGaji(gid, p, on) { saveGaji(gid, p, { tanggalBayar: on ? todayStr() : '' }); }
+function slipHtml(g, p, c) {
+  return `<div class="inv"><div class="inv-h"><img src="${LOGO}" alt=""><div style="flex:1"><h2>Slip Gaji Guru</h2><div class="small muted">${esc(S.settings.namaLembaga)} · ${esc(S.settings.alamat || '')}</div></div><div style="text-align:right"><b>${fmtPeriod(p)}</b></div></div>
+    <div class="stamp ${c.paid ? 'paid' : 'unpaid'}">${c.paid ? 'DIBAYAR' : 'BELUM DIBAYAR'}</div>
+    <table><tr><td style="width:150px" class="muted">Nama guru</td><td><b>${esc(g.nama)}</b> (${esc(g.id)})</td></tr>
+      <tr><td class="muted">Kehadiran</td><td>${c.hadir} hari hadir · ${c.jam} jam mengajar</td></tr>
+      <tr><td class="muted">Cara hitung</td><td>${esc(c.tipe)} · ${rp(c.tarif)}</td></tr>
+      <tr><td class="muted">Gaji pokok</td><td class="num">${rp(c.pokok)}</td></tr>
+      <tr><td class="muted">Bonus</td><td class="num">${rp(c.bonus)}</td></tr>
+      <tr><td class="muted">Potongan</td><td class="num">${c.pot ? '−' + rp(c.pot) : rp(0)}</td></tr>
+      ${c.rec && c.rec.catatan ? `<tr><td class="muted">Catatan</td><td>${esc(c.rec.catatan)}</td></tr>` : ''}</table>
+    <div style="border-radius:12px;background:var(--pink-50);padding:14px;margin:14px 0;display:flex;align-items:center"><b style="flex:1">Total diterima</b><div class="tot num">${rp(c.total)}</div></div>
+    <div class="small muted" style="text-align:right">${c.paid ? 'Dibayar ' + fmtDateLong(c.rec.tanggalBayar) : 'Dicetak ' + fmtDateLong(todayStr())}</div></div>`;
+}
+function slipGaji(gid, p) {
+  const g = guruById(gid), c = gajiCalc(g, p);
+  modal('Slip Gaji', slipHtml(g, p, c), `<button class="btn ghost" onclick="printHtml($('#modal .inv').outerHTML,'Slip Gaji ${esc(g.nama)}')">${ic('print')} Cetak / PDF</button><button class="btn wa" onclick="waSlip('${gid}','${p}')">${ic('wa')} Kirim WA</button>`, true);
+}
+function waSlip(gid, p) {
+  const g = guruById(gid), c = gajiCalc(g, p);
+  openWa(g.wa, `Assalamu'alaikum ${g.nama},\n\nBerikut rincian gaji *${fmtPeriod(p)}* di ${S.settings.namaLembaga}:\n\nKehadiran: ${c.hadir} hari · ${c.jam} jam\nGaji pokok (${c.tipe}): ${rp(c.pokok)}\nBonus: ${rp(c.bonus)}\nPotongan: ${rp(c.pot)}\n*Total: ${rp(c.total)}*\n${c.paid ? '\nStatus: sudah dibayar ' + fmtDateLong(c.rec.tanggalBayar) : ''}\n\nTerima kasih atas dedikasinya 🙏`);
+}
+function csvGaji(p) {
+  const rows = [['ID', 'Guru', 'Cara hitung', 'Tarif', 'Hadir', 'Jam', 'Gaji pokok', 'Bonus', 'Potongan', 'Total', 'Tanggal bayar']];
+  D('Guru').forEach(g => { const c = gajiCalc(g, p); rows.push([g.id, g.nama, c.tipe, c.tarif, c.hadir, c.jam, c.pokok, c.bonus, c.pot, c.total, c.rec ? c.rec.tanggalBayar : '']); });
+  downloadFile(`Gaji-Guru-${p}.csv`, toCSV(rows));
+}
+
 
 /* ================= PENGATURAN ================= */
 function pgPengaturan() {
@@ -1320,7 +1519,11 @@ function pgPengaturan() {
         <div class="field"><label>Ulangi password baru</label><input class="input" type="password" name="newPass2" required></div>
         <div class="full"><button class="btn ghost">Ganti Password</button></div>
       </form></div>
-    <div class="card"><h3>Level Jarimatika</h3>${LEVELS.map(l => `<div class="li"><div class="avatar" style="background:${l.color};color:#fff">${l.n}</div><div class="meta"><b>${l.judul}</b><span class="small muted">${l.desc}</span></div></div>`).join('')}</div>
+    <div class="card"><h3>Level & jurus Jarimatika</h3><form id="fLv" onsubmit="event.preventDefault();saveLevels()">
+      ${LV().map(l => `<div style="border:1.5px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px"><div class="row" style="margin-bottom:8px"><div class="avatar" style="background:${l.color};color:#fff">${l.n}</div><b>Level ${l.n}</b></div>
+        <div class="form-grid"><div class="field"><label>Nama level</label><input class="input" name="nama${l.n}" value="${esc(l.nama)}"></div><div class="field"><label>Daftar jurus (pisahkan koma)</label><input class="input" name="jurus${l.n}" value="${esc(l.jurus)}"></div><div class="field full"><label>Deskripsi</label><input class="input" name="desc${l.n}" value="${esc(l.desc)}"></div></div></div>`).join('')}
+      <div class="field" style="margin-bottom:12px"><label>Jumlah soal per latihan</label><input class="input" name="soalPerLatihan" inputmode="numeric" value="${esc(S.settings.soalPerLatihan || 10)}" style="max-width:120px"></div>
+      <button class="btn ghost">Simpan Level & Jurus</button></form></div>
     <div class="card"><h3>Data & koneksi</h3>
       <p class="small" style="margin-bottom:10px">Mode: <b>${IS_GAS ? 'Google Apps Script' : DEMO ? 'DEMO (data tersimpan di browser ini saja)' : 'API ' + esc(CONFIG.API_URL.slice(0, 48)) + '…'}</b></p>
       <div class="row"><button class="btn ghost" onclick="backupJson()">${ic('download')} Cadangkan data (JSON)</button><button class="btn ghost" onclick="reloadData()">Muat ulang data</button>
@@ -1330,6 +1533,11 @@ function pgPengaturan() {
   </div></div>`;
 }
 async function saveSettings() { try { const r = await call('saveSettings', { settings: formData($('#fSet')) }); S.settings = r.settings; toast('Pengaturan tersimpan'); renderAdmin(); } catch (e) { toast(e.message, true); } }
+async function saveLevels() {
+  const f = formData($('#fLv'));
+  const levels = [1, 2, 3, 4].map(n => ({ n, nama: f['nama' + n], desc: f['desc' + n], jurus: f['jurus' + n] }));
+  try { const r = await call('saveSettings', { settings: { levels: JSON.stringify(levels), soalPerLatihan: String(+f.soalPerLatihan || 10) } }); S.settings = r.settings; toast('Level & jurus tersimpan'); renderAdmin(); } catch (e) { toast(e.message, true); }
+}
 async function changePw() {
   const f = formData($('#fPw')); if (f.newPass !== f.newPass2) return toast('Password baru tidak sama', true);
   try { await call('changePassword', { oldPass: f.oldPass, newPass: f.newPass }); toast('Password berhasil diganti'); $('#fPw').reset(); } catch (e) { toast(e.message, true); }
@@ -1338,51 +1546,150 @@ function backupJson() { downloadFile(`Backup-JariMath-${todayStr()}.json`, JSON.
 async function reloadData() { const r = await call('bootstrap'); S.db = r.data.db; S.settings = r.data.settings; renderAdmin(); toast('Data diperbarui'); }
 
 /* =========================================================
-   PORTAL MURID — latihan soal Jarimatika level 1–4
+   HEADER bersama (portal guru & orang tua)
    ========================================================= */
 function kidTop(sub) {
-  const s = S.me.siswa;
-  const stars = sum(S.me.Bintang, b => b.jumlah);
-  return `<div class="kid-top"><img src="${LOGO}" alt=""><div style="flex:1;min-width:0"><b style="font-family:var(--font-h);font-size:18px;color:var(--pink)">${esc(S.settings.namaLembaga)}</b><div class="small muted">${sub}</div></div>
-    ${S.role === 'murid' ? `<span class="star-pill">⭐ ${stars}</span>` : ''}<button class="icon-btn" title="Keluar" onclick="logout()">${ic('logout')}</button></div>`;
+  const stars = S.role === 'ortu' && S.me ? sum(S.me.Bintang, b => b.jumlah) : null;
+  return `<div class="kid-top"><img src="${LOGO}" alt=""><div style="flex:1;min-width:0"><b style="font-family:var(--font-h);font-size:18px;color:var(--pink)">${esc(S.settings.namaLembaga)}</b><div class="small muted">${esc(sub)}</div></div>
+    ${stars !== null ? `<span class="star-pill">⭐ ${stars}</span>` : ''}<button class="icon-btn" title="Keluar" onclick="logout()">${ic('logout')}</button></div>`;
 }
-function renderMurid() {
-  const s = S.me.siswa, lv = +s.level || 1;
-  const nilai = [...S.me.Nilai].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
-  const p = thisPeriod(); const ab = S.me.Absensi.filter(a => a.tanggal.startsWith(p));
-  $('#app').innerHTML = kidTop('Portal Murid') + `<div class="kid-wrap">
-    <div class="kid-hero"><div class="big-emoji">🧒</div><div><h2>Hai, ${esc(s.panggilan || s.nama.split(' ')[0])}!</h2><p>Yuk latihan berhitung cepat pakai jari hari ini ✋</p><span class="lv">${esc(LEVELS[lv - 1].judul)}</span></div></div>
-    <h3 style="font-size:20px">Pilih level latihan</h3>
-    <div class="levels">${LEVELS.map(L => { const locked = L.n > lv; const best = Math.max(0, ...nilai.filter(n => +n.level === L.n).map(n => +n.skor)); return `
-      <button class="level-card ${locked ? 'locked' : ''}" style="background:${L.bg}" onclick="${locked ? `toast('Level ${L.n} terbuka setelah naik level bersama guru 🔒')` : `startQuiz(${L.n})`}">
-        ${locked ? '<span class="lock">🔒</span>' : ''}
-        <span class="n" style="background:${L.color}">${L.n}</span>
-        <span><h3>${L.judul.replace('Level ' + L.n + ' — ', '')}</h3><p>${L.desc}</p><p style="margin-top:4px;font-weight:800;color:var(--ink)">${locked ? 'Terkunci' : best ? `Skor terbaik ${best} ${'⭐'.repeat(starsFor(best))}` : 'Belum pernah latihan'}</p></span>
-      </button>`; }).join('')}</div>
+const stCls = { Hadir: 'b-green', Izin: 'b-blue', Sakit: 'b-yellow', Alpa: 'b-red' };
+
+/* =========================================================
+   PORTAL GURU
+   ========================================================= */
+function gSiswaList(scope, date) {
+  const all = S.g.siswa;
+  if (scope === 'all') return all;
+  if (scope === 'mine' || !scope) return all.filter(s => s.diajar);
+  const j = S.g.Jadwal.find(x => x.id === scope);
+  if (!j) return all.filter(s => s.diajar);
+  const ids = j.siswaIds.split(',').map(x => x.trim());
+  return all.filter(s => ids.includes(s.id));
+}
+function gScopeSelect(key, date) {
+  const hari = dayName(date), cur = S.f[key] || (S.g.siswa.some(s => s.diajar) ? 'mine' : 'all');
+  const ses = S.g.Jadwal.filter(j => j.hari === hari).sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+  return `<select class="input" onchange="S.f['${key}']=this.value;renderGuru()">
+    ${ses.map(j => `<option value="${j.id}" ${cur === j.id ? 'selected' : ''}>Sesi ${esc(j.sesi)} · ${esc(j.jamMulai)}–${esc(j.jamSelesai)} (${esc(j.tipe)})</option>`).join('')}
+    <option value="mine" ${cur === 'mine' ? 'selected' : ''}>Semua siswa yang saya ajar</option>
+    <option value="all" ${cur === 'all' ? 'selected' : ''}>Semua siswa aktif</option></select>`;
+}
+function renderGuru() {
+  const g = S.g.guru, t = S.tab.gp || 'absen', today = todayStr(), hari = dayName(today);
+  const me = S.g.AbsensiGuru.find(a => a.tanggal === today);
+  const jHari = S.g.Jadwal.filter(j => j.hari === hari).sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+  let absenBox;
+  if (!me || !me.status) absenBox = `<p class="small" style="margin-bottom:10px">Anda belum absen hari ini.</p><div class="row"><button class="btn green" onclick="gAbsen('masuk')">${ic('clock')} Absen Masuk</button><button class="btn ghost sm" onclick="gAbsen('Izin')">Izin</button><button class="btn ghost sm" onclick="gAbsen('Sakit')">Sakit</button></div>`;
+  else if (me.status === 'Hadir' && !me.jamKeluar) absenBox = `<p style="margin-bottom:10px"><span class="badge b-green">Hadir</span> Masuk pukul <b>${esc(me.jamMasuk)}</b></p><button class="btn" onclick="gAbsen('pulang')">${ic('logout')} Absen Pulang</button>`;
+  else if (me.status === 'Hadir') absenBox = `<p><span class="badge b-green">✓ Selesai</span> Masuk <b>${esc(me.jamMasuk)}</b> · Pulang <b>${esc(me.jamKeluar)}</b> · <b>${esc(me.jamMengajar)} jam</b></p><button class="btn sm ghost" style="margin-top:8px" onclick="gAbsen('pulang')">Perbarui jam pulang</button>`;
+  else absenBox = `<p><span class="badge ${stCls[me.status] || 'b-gray'}">${esc(me.status)}</span> hari ini</p><button class="btn sm ghost" style="margin-top:8px" onclick="gAbsen('masuk')">Ubah jadi Hadir (absen masuk)</button>`;
+
+  let body = '';
+  if (t === 'absen') body = gTabAbsen();
+  else if (t === 'harian') body = gTabHarian();
+  else if (t === 'siswa') body = gTabSiswa();
+  else body = gTabRiwayat();
+
+  $('#app').innerHTML = kidTop('Portal Guru') + `<div class="kid-wrap">
+    <div class="hero"><div class="avatar" style="width:60px;height:60px;font-size:22px;position:relative;z-index:1">${initials(g.nama)}</div><div style="position:relative;z-index:1;min-width:0"><h2>${esc(g.nama)}</h2><p>${esc(g.id)} · WA ${esc(g.wa || '-')}</p><p class="small">${hari}, ${fmtDateLong(today)}</p></div></div>
     <div class="grid g2">
-      <div class="card"><h3>Riwayat latihan</h3>${nilai.slice(0, 8).map(n => `<div class="li"><div class="avatar" style="background:${LEVELS[n.level - 1].bg}">${esc(n.level)}</div><div class="meta"><b>Skor ${esc(n.skor)} · ${esc(n.benar)}/${esc(n.total)} benar</b><span class="small muted">${fmtDate(n.tanggal)} · ${Math.floor(n.durasi / 60)}m ${n.durasi % 60}d</span></div><span>${'⭐'.repeat(+n.bintang) || '—'}</span></div>`).join('') || '<div class="empty">Belum ada latihan. Ayo mulai! 💪</div>'}</div>
-      <div class="card"><h3>Kehadiranku — ${BULAN[+p.slice(5) - 1]}</h3>
-        <div class="grid g2 keep" style="margin-bottom:10px"><div class="stat bg-green"><span class="lbl">Hadir</span><span class="val num">${ab.filter(a => a.status === 'Hadir').length}</span></div><div class="stat bg-blue"><span class="lbl">Pertemuan</span><span class="val num">${ab.length}</span></div></div>
-        <h4 style="margin:6px 0">Jadwal lesku</h4>${S.me.Jadwal.map(j => `<div class="li"><div class="meta"><b>${esc(j.hari)} · ${esc(j.jamMulai)}–${esc(j.jamSelesai)}</b><span class="small muted">${esc(j.tipe)} · ${esc(j.guruNama)}</span></div></div>`).join('') || '<div class="small muted">Belum ada jadwal</div>'}
-      </div>
+      <div class="card"><h3>Absen saya hari ini</h3>${absenBox}</div>
+      <div class="card"><h3>Jadwal mengajar hari ini</h3>${jHari.map(j => `<div class="li"><div class="avatar" style="background:var(--green-50);color:var(--green)">${esc(j.sesi)}</div><div class="meta"><b>${esc(j.jamMulai)}–${esc(j.jamSelesai)} · ${esc(j.tipe)}</b><span class="small muted">${j.siswaIds.split(',').filter(Boolean).map(id => esc((S.g.siswa.find(s => s.id === id.trim()) || {}).panggilan || (S.g.siswa.find(s => s.id === id.trim()) || {}).nama || id)).join(', ')}</span></div></div>`).join('') || '<div class="empty" style="padding:12px">Tidak ada jadwal hari ini</div>'}</div>
     </div>
-    <div class="card" style="background:${LEVELS[lv - 1].bg}"><h3>💡 Tips jurus ${LEVELS[lv - 1].judul.split(' — ')[0]}</h3><p>${LEVELS[lv - 1].tip}</p></div>
+    <div class="row"><div class="tabs">${[['absen', 'Absensi Siswa'], ['harian', 'Perkembangan Harian'], ['siswa', 'Siswa Saya'], ['riwayat', 'Riwayat Absen Saya']].map(([k, l]) => `<button class="${t === k ? 'on' : ''}" onclick="S.tab.gp='${k}';renderGuru()">${l}</button>`).join('')}</div></div>
+    ${body}
   </div>`;
 }
+async function gAbsen(mode) {
+  try { const r = await call('guruAbsen', { mode }); const i = S.g.AbsensiGuru.findIndex(a => a.id === r.row.id); i > -1 ? S.g.AbsensiGuru[i] = r.row : S.g.AbsensiGuru.push(r.row); toast(mode === 'masuk' ? 'Absen masuk tercatat ✓' : mode === 'pulang' ? 'Absen pulang tercatat ✓' : 'Tercatat'); renderGuru(); }
+  catch (e) { toast(e.message, true); }
+}
+function gTabAbsen() {
+  const date = S.f.gaDate || todayStr();
+  const list = gSiswaList(S.f.gaScope || (S.g.siswa.some(s => s.diajar) ? 'mine' : 'all'), date);
+  if (!S.gaDraft || S.gaDraft._date !== date) { S.gaDraft = { _date: date }; S.g.Absensi.filter(a => a.tanggal === date).forEach(a => S.gaDraft[a.siswaId] = { status: a.status, catatan: a.catatan }); }
+  return `<div class="card"><div class="card-head">
+    <div class="field"><label>Tanggal</label><input class="input" type="date" value="${date}" max="${todayStr()}" onchange="S.f.gaDate=this.value;renderGuru()"></div>
+    <div class="field" style="flex:1;min-width:200px"><label>Kelas / sesi</label>${gScopeSelect('gaScope', date)}</div></div>
+    ${list.map(s => { const d = S.gaDraft[s.id] || {}; return `<div class="li" style="flex-wrap:wrap"><div class="meta" style="min-width:150px"><b>${esc(s.nama)}</b><span class="small muted">${esc(s.id)} · Level ${esc(s.level)}</span></div>
+      <div class="seg">${Object.entries(ST_ALL).map(([k, v]) => `<button class="${k} ${d.status === v ? 'on' : ''}" onclick="gaSet('${s.id}','${v}')">${k}</button>`).join('')}</div>
+      <input class="input" style="flex-basis:100%;padding:7px 10px" placeholder="Keterangan (opsional)" value="${esc(d.catatan || '')}" onchange="(S.gaDraft['${s.id}']=S.gaDraft['${s.id}']||{}).catatan=this.value"></div>`; }).join('') || '<div class="empty">Tidak ada siswa. Pilih "Semua siswa aktif".</div>'}
+    <div class="row" style="margin-top:14px"><button class="btn ghost" onclick="gaAll()">✓ Semua Hadir</button><div class="spacer"></div><button class="btn" onclick="gaSave()">Simpan Absensi</button></div>
+    <p class="small muted" style="margin-top:8px">H = Hadir · I = Izin · S = Sakit · A = Tanpa keterangan</p></div>`;
+}
+const ST_ALL = { H: 'Hadir', I: 'Izin', S: 'Sakit', A: 'Alpa' };
+function gaSet(id, v) { S.gaDraft[id] = Object.assign(S.gaDraft[id] || {}, { status: v }); renderGuru(); }
+function gaAll() { gSiswaList(S.f.gaScope || (S.g.siswa.some(s => s.diajar) ? 'mine' : 'all')).forEach(s => { if (!(S.gaDraft[s.id] || {}).status) S.gaDraft[s.id] = Object.assign(S.gaDraft[s.id] || {}, { status: 'Hadir' }); }); renderGuru(); }
+async function gaSave() {
+  const date = S.f.gaDate || todayStr();
+  const rows = Object.entries(S.gaDraft).filter(([k, v]) => k !== '_date' && v.status).map(([sid, v]) => ({ tanggal: date, siswaId: sid, status: v.status, catatan: v.catatan || '' }));
+  if (!rows.length) return toast('Pilih status kehadiran dulu', true);
+  try {
+    const r = await call('guruSaveAbsensi', { rows });
+    r.rows.forEach(x => { const i = S.g.Absensi.findIndex(a => a.tanggal === x.tanggal && a.siswaId === x.siswaId); i > -1 ? S.g.Absensi[i] = x : S.g.Absensi.push(x); });
+    toast(`Absensi ${fmtDate(date)} tersimpan (${r.rows.length} siswa)`); renderGuru();
+  } catch (e) { toast(e.message, true); }
+}
+function gTabHarian() {
+  const date = S.f.gpDate || todayStr();
+  const list = gSiswaList(S.f.gpScope || (S.g.siswa.some(s => s.diajar) ? 'mine' : 'all'), date);
+  const mine = S.g.Perkembangan.filter(p => p.guruId === S.g.guru.id);
+  const recent = [...S.g.Perkembangan].sort((a, b) => b.tanggal.localeCompare(a.tanggal)).slice(0, 10);
+  const nm = id => (S.g.siswa.find(s => s.id === id) || {}).nama || id;
+  return `<div class="card"><div class="card-head">
+    <div class="field"><label>Tanggal</label><input class="input" type="date" value="${date}" max="${todayStr()}" onchange="S.f.gpDate=this.value;renderGuru()"></div>
+    <div class="field" style="flex:1;min-width:200px"><label>Kelas / sesi</label>${gScopeSelect('gpScope', date)}</div></div>
+    <p class="small muted" style="margin-bottom:6px">Tulis perkembangan setiap anak hari ini. Catatan tampil di Portal Orang Tua.</p>
+    <form id="fGP" onsubmit="event.preventDefault();gpSave()">
+    ${list.map(s => { const ex = mine.find(p => p.tanggal === date && p.siswaId === s.id) || {}; const L = lvOf(s.level); return `<div style="border:1.5px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px" data-sid="${s.id}" data-id="${esc(ex.id || '')}">
+      <div class="row" style="margin-bottom:8px"><b style="flex:1">${esc(s.nama)}</b>${lvBadge(s.level)}<select class="input" name="jurus" style="width:auto;padding:6px 10px"><option value="">Jurus…</option>${L.jurusList.map(j => `<option ${ex.jurus === j ? 'selected' : ''}>${esc(j)}</option>`).join('')}</select></div>
+      <textarea class="input" name="deskripsi" style="min-height:64px" placeholder="contoh: Sudah lancar jurus 1, masih perlu latihan menutup jari…">${esc(ex.deskripsi || '')}</textarea></div>`; }).join('') || '<div class="empty">Tidak ada siswa. Pilih "Semua siswa aktif".</div>'}
+    ${list.length ? '<div class="row"><div class="spacer"></div><button class="btn">Simpan Perkembangan</button></div>' : ''}</form></div>
+  <div class="card"><h3>Catatan terbaru</h3>${recent.map(p => `<div class="li" style="align-items:flex-start"><div class="meta"><b>${esc(nm(p.siswaId))} ${p.jurus ? `<span class="badge b-pink">${esc(p.jurus)}</span>` : ''}</b><div style="white-space:pre-line">${esc(p.deskripsi)}</div><span class="small muted">${fmtDate(p.tanggal)}${p.guruId !== S.g.guru.id ? ' · guru lain' : ''}</span></div>${p.guruId === S.g.guru.id ? `<button class="icon-btn" onclick="gpDel('${p.id}')">${ic('trash')}</button>` : ''}</div>`).join('') || '<div class="empty">Belum ada catatan</div>'}</div>`;
+}
+async function gpSave() {
+  const date = S.f.gpDate || todayStr();
+  const rows = $$('#fGP [data-sid]').map(el => ({ id: el.dataset.id || '', tanggal: date, siswaId: el.dataset.sid, jurus: el.querySelector('[name=jurus]').value, deskripsi: el.querySelector('[name=deskripsi]').value.trim() })).filter(r => r.deskripsi);
+  if (!rows.length) return toast('Tulis minimal satu deskripsi', true);
+  try {
+    const r = await call('guruSaveProgress', { rows });
+    r.rows.forEach(x => { const i = S.g.Perkembangan.findIndex(p => p.id === x.id); i > -1 ? S.g.Perkembangan[i] = x : S.g.Perkembangan.push(x); });
+    toast(`${r.rows.length} catatan perkembangan tersimpan ✓`); renderGuru();
+  } catch (e) { toast(e.message, true); }
+}
+function gpDel(id) { confirmBox('Hapus catatan ini?', async () => { try { await call('guruDelProgress', { id }); S.g.Perkembangan = S.g.Perkembangan.filter(p => p.id !== id); renderGuru(); } catch (e) { toast(e.message, true); } }); }
+function gTabSiswa() {
+  const list = S.g.siswa.filter(s => s.diajar);
+  return `<div class="card"><h3>Anak yang saya ajar (${list.length})</h3>
+    ${list.map(s => { const js = S.g.Jadwal.filter(j => j.siswaIds.split(',').map(x => x.trim()).includes(s.id)); return `<div class="li"><div class="avatar">${initials(s.nama)}</div><div class="meta"><b>${esc(s.nama)}${s.panggilan ? ` (${esc(s.panggilan)})` : ''}</b><span class="small muted">${esc(s.id)} · ${esc(lvOf(s.level).judul)} · ${js.map(j => `${j.hari} ${j.jamMulai}`).join(', ')}</span></div></div>`; }).join('') || '<div class="empty">Belum ada siswa di jadwal Anda. Admin mengatur pembagian di menu Jadwal Les.</div>'}</div>`;
+}
+function gTabRiwayat() {
+  const p = S.f.grP || thisPeriod();
+  const rows = S.g.AbsensiGuru.filter(a => a.tanggal.startsWith(p)).sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+  return `<div class="card"><div class="card-head"><select class="input" style="max-width:200px" onchange="S.f.grP=this.value;renderGuru()">${monthOptions(p, 6, 0)}</select></div>
+    <div class="grid g2 keep" style="margin-bottom:10px"><div class="stat bg-green"><span class="lbl">Hari hadir</span><span class="val num">${rows.filter(r => r.status === 'Hadir').length}</span></div><div class="stat bg-blue"><span class="lbl">Jam mengajar</span><span class="val num">${sum(rows, r => r.jamMengajar)}</span></div></div>
+    ${rows.map(r => `<div class="li"><div class="meta"><b>${dayName(r.tanggal)}, ${fmtDate(r.tanggal)}</b><span class="small muted">${r.jamMasuk ? `${esc(r.jamMasuk)}–${esc(r.jamKeluar || '…')} · ${esc(r.jamMengajar || 0)} jam` : ''}</span></div><span class="badge ${stCls[r.status] || 'b-gray'}">${esc(r.status)}</span></div>`).join('') || '<div class="empty">Belum ada absen di bulan ini</div>'}</div>`;
+}
 
+/* =========================================================
+   LATIHAN SOAL (di Portal Orang Tua) — soal dari bank soal admin
+   ========================================================= */
 let Q = null;
-function startQuiz(level) {
-  Q = { level, items: buildQuiz(level, S.me.Soal, 10), i: 0, ans: '', res: [], t0: Date.now(), lock: false };
+function startQuiz(level, jurus) {
+  const items = buildQuiz(level, S.me.Soal, jurus || '');
+  if (!items.length) return toast('Soal untuk pilihan ini belum disiapkan admin', true);
+  Q = { level, jurus: jurus || '', items, i: 0, ans: '', res: [], t0: Date.now(), lock: false };
   renderQuiz();
-  clearInterval(Q.timer); Q.timer = setInterval(() => { const el = $('#qTimer'); if (el) el.textContent = fmtSec((Date.now() - Q.t0) / 1000); else clearInterval(Q.timer); }, 1000);
+  clearInterval(Q.timer); Q.timer = setInterval(() => { const el = $('#qTimer'); if (el && Q) el.textContent = fmtSec((Date.now() - Q.t0) / 1000); else if (Q) clearInterval(Q.timer); }, 1000);
 }
 const fmtSec = s => `${Math.floor(s / 60)}:${pad(Math.floor(s % 60))}`;
 function renderQuiz(state = '') {
-  const it = Q.items[Q.i], L = LEVELS[Q.level - 1];
-  $('#app').innerHTML = kidTop(L.judul) + `<div class="kid-wrap"><div class="quiz">
+  const it = Q.items[Q.i], L = lvOf(Q.level);
+  $('#app').innerHTML = kidTop(L.judul + (Q.jurus ? ' · ' + Q.jurus : '')) + `<div class="kid-wrap"><div class="quiz">
     <div class="row"><button class="btn sm ghost" onclick="quitQuiz()">✕ Keluar</button><div class="spacer"></div><b>Soal ${Q.i + 1}/${Q.items.length}</b><div class="spacer"></div><span class="badge b-pink" style="font-size:14px">⏱ <span id="qTimer">${fmtSec((Date.now() - Q.t0) / 1000)}</span></span></div>
     <div class="dots">${Q.items.map((_, k) => `<i class="${k < Q.res.length ? (Q.res[k] ? 'ok' : 'no') : k === Q.i ? 'cur' : ''}"></i>`).join('')}</div>
-    <div class="q-box ${state}" id="qBox"><div class="q-text">${esc(it.q)} = ?</div><div class="q-ans" id="qAns">${esc(Q.ans) || '&nbsp;'}</div>
+    <div class="q-box ${state}"><div class="q-text" style="${it.q.length > 14 ? 'font-size:34px' : ''}">${esc(it.q)} = ?</div><div class="q-ans" id="qAns">${esc(Q.ans) || '&nbsp;'}</div>
       ${state === 'wrong' ? `<div style="margin-top:8px;font-weight:800;color:var(--red)">Jawaban yang benar: ${esc(it.ans)}</div>` : state === 'right' ? '<div style="margin-top:8px;font-weight:800;color:var(--green)">Hebat! Benar 🎉</div>' : ''}</div>
     <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button onclick="qKey('${n}')">${n}</button>`).join('')}<button class="del" onclick="qKey('del')">⌫</button><button onclick="qKey('0')">0</button><button class="ok" onclick="qKey('ok')">✓</button></div>
   </div></div>`;
@@ -1391,39 +1698,40 @@ function qKey(k) {
   if (!Q || Q.lock) return;
   if (k === 'del') Q.ans = Q.ans.slice(0, -1);
   else if (k === 'ok') return qSubmit();
-  else if (Q.ans.length < 5) Q.ans += k;
+  else if (Q.ans.length < 6) Q.ans += k;
   const el = $('#qAns'); if (el) el.innerHTML = esc(Q.ans) || '&nbsp;';
 }
 function qSubmit() {
   if (!Q.ans) return;
-  const ok = Q.ans.replace(/^0+(?=\d)/, '') === String(Q.items[Q.i].ans);
+  const ok = Q.ans.replace(/^0+(?=\d)/, '') === String(Q.items[Q.i].ans).replace(/^0+(?=\d)/, '');
   Q.res.push(ok); Q.lock = true;
   renderQuiz(ok ? 'right' : 'wrong');
-  setTimeout(() => { Q.lock = false; Q.i++; Q.ans = ''; Q.i >= Q.items.length ? finishQuiz() : renderQuiz(); }, ok ? 700 : 1600);
+  setTimeout(() => { if (!Q) return; Q.lock = false; Q.i++; Q.ans = ''; Q.i >= Q.items.length ? finishQuiz() : renderQuiz(); }, ok ? 700 : 1600);
 }
 document.addEventListener('keydown', e => {
-  if (!Q || S.role !== 'murid' || !$('.keypad')) return;
+  if (!Q || !$('.keypad')) return;
   if (/^\d$/.test(e.key)) qKey(e.key); else if (e.key === 'Backspace') qKey('del'); else if (e.key === 'Enter') qKey('ok');
 });
-function quitQuiz() { confirmBox('Keluar dari latihan? Hasil tidak akan disimpan.', () => { clearInterval(Q.timer); Q = null; renderMurid(); }, 'Ya, keluar'); }
+function quitQuiz() { confirmBox('Keluar dari latihan? Hasil tidak akan disimpan.', () => { if (Q) clearInterval(Q.timer); Q = null; S.tab.ortu = 'latihan'; renderOrtu(); }, 'Ya, keluar'); }
 async function finishQuiz() {
   clearInterval(Q.timer);
   const benar = Q.res.filter(Boolean).length, total = Q.items.length, durasi = Math.round((Date.now() - Q.t0) / 1000);
+  const lv = Q.level, jr = Q.jurus;
   let r;
-  try { r = (await call('submitQuiz', { level: Q.level, benar, total, durasi })).result; }
+  try { r = (await call('submitQuiz', { level: lv, jurus: jr, benar, total, durasi })).result; }
   catch (e) { toast(e.message, true); r = { skor: Math.round(benar / total * 100), bintang: 0, gagal: true }; }
   try { const m = await call('me', {}, { silent: true }); S.me = m.data; } catch (e) {}
-  const msg = r.skor === 100 ? 'Sempurna! Kamu jago banget! 🏆' : r.skor >= 75 ? 'Keren! Terus berlatih ya! 🎉' : r.skor >= 60 ? 'Bagus! Sedikit lagi jadi juara 💪' : 'Tidak apa-apa, ayo coba lagi! 🌈';
-  const lv = Q.level; Q = null;
+  const msg = r.skor === 100 ? 'Sempurna! Hebat sekali! 🏆' : r.skor >= 75 ? 'Keren! Terus berlatih ya! 🎉' : r.skor >= 60 ? 'Bagus! Sedikit lagi jadi juara 💪' : 'Tidak apa-apa, ayo coba lagi! 🌈';
+  Q = null;
   $('#app').innerHTML = kidTop('Hasil latihan') + `<div class="kid-wrap"><div class="quiz result">
     <h2 style="font-size:24px">Latihan selesai!</h2>
     <div class="stars">${[0, 1, 2].map(i => `<span class="${i < r.bintang ? '' : 'off'}" style="animation-delay:${.15 + i * .2}s">⭐</span>`).join('')}</div>
     <div class="score-big num">${r.skor}</div>
     <p style="font-weight:800">${benar} dari ${total} benar · waktu ${fmtSec(durasi)}</p>
     <p style="font-size:18px;margin:8px 0 6px">${msg}</p>
-    ${r.bintang ? `<p class="badge b-yellow" style="font-size:14px">+${r.bintang} bintang masuk ke tabunganmu!</p>` : '<p class="small muted">Dapatkan skor 60 ke atas untuk mendapat bintang.</p>'}
+    ${r.bintang ? `<p class="badge b-yellow" style="font-size:14px">+${r.bintang} bintang masuk ke tabungan!</p>` : '<p class="small muted">Dapatkan skor 60 ke atas untuk mendapat bintang.</p>'}
     ${r.gagal ? '<p class="small" style="color:var(--red)">Hasil belum tersimpan (koneksi). Coba lagi nanti.</p>' : ''}
-    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn ghost" onclick="renderMurid()">Kembali</button><button class="btn" onclick="startQuiz(${lv})">Ulangi Level ${lv}</button></div>
+    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn ghost" onclick="S.tab.ortu='latihan';renderOrtu()">Kembali</button><button class="btn" onclick="startQuiz(${lv},'${esc(jr)}')">Ulangi</button></div>
   </div></div>`;
 }
 
@@ -1439,20 +1747,23 @@ function renderOrtu() {
   const ab = S.me.Absensi.filter(a => a.tanggal.startsWith(p));
   const stars = sum(S.me.Bintang, b => b.jumlah);
   const laps = [...S.me.Laporan].sort((a, b) => b.periode.localeCompare(a.periode));
-  const L = LEVELS[(+s.level || 1) - 1];
+  const harian = [...(S.me.Perkembangan || [])].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+  const L = lvOf(s.level);
+  const harianItem = h => `<div class="li" style="align-items:flex-start"><div class="avatar" style="background:var(--purple-50)">📝</div><div class="meta"><b>${dayName(h.tanggal)}, ${fmtDate(h.tanggal)} ${h.jurus ? `<span class="badge b-pink">${esc(h.jurus)}</span>` : ''}</b><div style="white-space:pre-line">${esc(h.deskripsi)}</div><span class="small muted">${esc(h.guruNama || '')}</span></div></div>`;
   let body = '';
   if (t === 'ringkas') {
     body = `${unpaid.length ? `<div class="card" style="background:var(--red-50);border-color:#F8CACA"><div class="row"><div style="font-size:30px">⚠️</div><div style="flex:1;min-width:200px"><h3 style="color:#B4282D;margin:0">Ada tagihan SPP belum dibayar</h3><p class="small">${unpaid.map(fmtPeriod).join(', ')} · total <b>${rp(unpaid.length * sppNominal(s, st))}</b></p></div><button class="btn red" onclick="S.tab.ortu='spp';renderOrtu()">Lihat Invoice</button></div></div>`
       : `<div class="card" style="background:var(--green-50);border-color:#BFEBD2"><div class="row"><div style="font-size:30px">✅</div><div><h3 style="color:#0E7A41;margin:0">SPP ${fmtPeriod(p)} sudah lunas</h3><p class="small">Terima kasih atas pembayarannya 🙏</p></div></div></div>`}
     <div class="grid g4">
       <div class="stat bg-blue"><span class="lbl">Hadir ${BULAN[+p.slice(5) - 1]}</span><span class="val num">${ab.filter(a => a.status === 'Hadir').length}/${ab.length}</span><span class="sub">pertemuan</span></div>
-      <div class="stat" style="background:${L.bg}"><span class="lbl">Level</span><span class="val num">${esc(s.level)}</span><span class="sub">${L.desc}</span></div>
+      <div class="stat" style="background:${L.bg}"><span class="lbl">Level ${esc(s.level)}</span><span class="val" style="font-size:19px">${esc(L.nama)}</span><span class="sub">${esc(L.desc)}</span></div>
       <div class="stat bg-yellow"><span class="lbl">Tabungan bintang</span><span class="val num">⭐ ${stars}</span><span class="sub">bisa ditukar hadiah</span></div>
-      <div class="stat bg-green"><span class="lbl">Latihan</span><span class="val num">${S.me.Nilai.length}</span><span class="sub">rata-rata ${S.me.Nilai.length ? Math.round(sum(S.me.Nilai, n => n.skor) / S.me.Nilai.length) : '-'}</span></div>
+      <div class="stat bg-green" style="cursor:pointer" onclick="S.tab.ortu='latihan';renderOrtu()"><span class="lbl">Latihan soal</span><span class="val num">${S.me.Nilai.length}</span><span class="sub">Ayo latihan →</span></div>
     </div>
     <div class="grid g2">
-      <div class="card"><h3>Laporan terbaru</h3>${laps[0] ? `<div class="li"><div class="avatar" style="background:var(--blue-50)">📄</div><div class="meta"><b>${fmtPeriod(laps[0].periode)}</b><span class="small muted">${esc((laps[0].catatanGuru || '').slice(0, 80))}…</span></div><button class="btn sm" onclick="ortuLap('${laps[0].id}')">Lihat</button></div>` : '<div class="empty">Laporan bulan ini belum tersedia</div>'}</div>
-      <div class="card"><h3>Jadwal les</h3>${S.me.Jadwal.map(j => `<div class="li"><div class="avatar" style="background:var(--green-50)">${esc(j.hari.slice(0, 2))}</div><div class="meta"><b>${esc(j.hari)}, ${esc(j.jamMulai)}–${esc(j.jamSelesai)}</b><span class="small muted">${esc(j.tipe)} · ${esc(j.guruNama)}</span></div></div>`).join('') || '<div class="empty">Belum ada jadwal</div>'}</div>
+      <div class="card"><div class="card-head"><h3>Perkembangan harian</h3><div class="spacer"></div>${harian.length > 3 ? `<button class="btn sm ghost" onclick="S.tab.ortu='harian';renderOrtu()">Semua</button>` : ''}</div>${harian.slice(0, 3).map(harianItem).join('') || '<div class="empty">Belum ada catatan dari guru</div>'}</div>
+      <div class="card"><h3>Jadwal les</h3>${S.me.Jadwal.map(j => `<div class="li"><div class="avatar" style="background:var(--green-50)">${esc(j.hari.slice(0, 2))}</div><div class="meta"><b>${esc(j.hari)}, ${esc(j.jamMulai)}–${esc(j.jamSelesai)}</b><span class="small muted">${esc(j.tipe)} · ${esc(j.guruNama)}</span></div></div>`).join('') || '<div class="empty">Belum ada jadwal</div>'}
+        ${laps[0] ? `<h4 style="margin:12px 0 4px">Laporan terbaru</h4><div class="li"><div class="meta"><b>${fmtPeriod(laps[0].periode)}</b></div><button class="btn sm" onclick="ortuLap('${laps[0].id}')">Lihat</button></div>` : ''}</div>
     </div>`;
   } else if (t === 'spp') {
     const all = [...new Set(periods.concat(S.me.SPP.map(x => x.periode)))].sort().reverse();
@@ -1460,30 +1771,47 @@ function renderOrtu() {
       <table class="t"><thead><tr><th>Periode</th><th>Status</th><th class="r"></th></tr></thead><tbody>
       ${all.map(per => { const x = pay(per); return `<tr class="${x ? '' : 'unpaid'}"><td><b>${fmtPeriod(per)}</b><div class="small muted">${x ? `Dibayar ${fmtDate(x.tanggalBayar)} · ${esc(x.metode)}` : `Jatuh tempo ${fmtDate(dueDate(per, st))}`}</div></td><td>${x ? '<span class="badge b-green">✓ Lunas</span>' : '<span class="badge b-red">● Belum bayar</span>'}</td><td class="r"><button class="btn sm ${x ? 'ghost' : ''}" onclick="ortuInv('${per}')">${x ? 'Kwitansi' : 'Invoice'}</button></td></tr>`; }).join('') || '<tr><td colspan="3"><div class="empty">Belum ada tagihan</div></td></tr>'}
       </tbody></table>
-      <div style="margin-top:14px;background:var(--yellow-50);border-radius:14px;padding:12px 14px" class="small"><b>Cara bayar:</b> transfer ke ${esc(st.rekening || '-')}, lalu kirim bukti ke admin.<div style="margin-top:8px"><button class="btn sm wa" onclick="openWa('${esc(st.noWa)}','Assalamu\\'alaikum admin, saya orang tua ${esc(s.nama)} (${esc(s.id)}) ingin konfirmasi pembayaran SPP. Berikut bukti transfernya:')">${ic('wa')} Konfirmasi ke Admin</button></div></div></div>`;
+      <div style="margin-top:14px;background:var(--yellow-50);border-radius:14px;padding:12px 14px" class="small"><b>Cara bayar:</b> transfer ke ${esc(st.rekening || '-')}, lalu kirim bukti ke admin.<div style="margin-top:8px"><button class="btn sm wa" onclick="ortuWaBayar('')">${ic('wa')} Konfirmasi ke Admin</button></div></div></div>`;
   } else if (t === 'absen') {
     const per = S.f.oP || p; const rows = S.me.Absensi.filter(a => a.tanggal.startsWith(per)).sort((a, b) => b.tanggal.localeCompare(a.tanggal));
     const c = k => rows.filter(r => r.status === k).length;
     body = `<div class="card"><div class="card-head"><select class="input" style="max-width:200px" onchange="S.f.oP=this.value;renderOrtu()">${monthOptions(per, 12, 0)}</select></div>
       <div class="row" style="margin-bottom:10px"><span class="badge b-green">Hadir ${c('Hadir')}</span><span class="badge b-blue">Izin ${c('Izin')}</span><span class="badge b-yellow">Sakit ${c('Sakit')}</span><span class="badge b-red">Alpa ${c('Alpa')}</span></div>
-      ${rows.map(r => `<div class="li"><div class="meta"><b>${dayName(r.tanggal)}, ${fmtDateLong(r.tanggal)}</b>${r.catatan ? `<span class="small muted">${esc(r.catatan)}</span>` : ''}</div><span class="badge ${{ Hadir: 'b-green', Izin: 'b-blue', Sakit: 'b-yellow', Alpa: 'b-red' }[r.status]}">${r.status}</span></div>`).join('') || '<div class="empty">Belum ada absensi di bulan ini</div>'}</div>`;
+      ${rows.map(r => `<div class="li"><div class="meta"><b>${dayName(r.tanggal)}, ${fmtDateLong(r.tanggal)}</b>${r.catatan ? `<span class="small muted">${esc(r.catatan)}</span>` : ''}</div><span class="badge ${stCls[r.status]}">${r.status}</span></div>`).join('') || '<div class="empty">Belum ada absensi di bulan ini</div>'}</div>`;
+  } else if (t === 'harian') {
+    body = `<div class="card"><h3>Perkembangan harian dari guru</h3>${harian.map(harianItem).join('') || '<div class="empty">Belum ada catatan dari guru</div>'}</div>`;
   } else if (t === 'lap') {
     body = `<div class="card"><h3>Laporan bulanan</h3>${laps.map(l => `<div class="li"><div class="avatar" style="background:var(--blue-50)">📄</div><div class="meta"><b>${fmtPeriod(l.periode)}</b><span class="small muted">Hadir ${esc(l.hadir)}/${esc(l.pertemuan)} · nilai ${esc(l.rataNilai || '-')} · ⭐ ${esc(l.bintang)}</span></div><button class="btn sm" onclick="ortuLap('${l.id}')">Lihat / Cetak</button></div>`).join('') || '<div class="empty">Belum ada laporan</div>'}</div>`;
   } else {
+    const lv = +s.level || 1;
     const nilai = [...S.me.Nilai].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
     const bin = [...S.me.Bintang].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
-    body = `<div class="grid g2"><div class="card"><h3>Hasil latihan soal</h3>${nilai.slice(0, 20).map(n => `<div class="li"><div class="avatar" style="background:${LEVELS[n.level - 1].bg}">L${esc(n.level)}</div><div class="meta"><b>Skor ${esc(n.skor)} (${esc(n.benar)}/${esc(n.total)})</b><span class="small muted">${fmtDate(n.tanggal)}</span></div><span>${'⭐'.repeat(+n.bintang) || '—'}</span></div>`).join('') || '<div class="empty">Belum ada latihan</div>'}</div>
+    body = `<div class="card" style="background:var(--yellow-50)"><b>✋ Latihan soal Jarimatika</b><p class="small">Pilih level & jurus, lalu ananda menjawab soal memakai jari. Skor ≥ 60 dapat ⭐, ≥ 75 ⭐⭐, ≥ 90 ⭐⭐⭐. Level di atas level ananda masih terkunci.</p></div>
+    <div class="levels">${LV().map(Lx => {
+      const locked = Lx.n > lv; const bank = S.me.Soal.filter(q => +q.level === Lx.n); const best = Math.max(0, ...nilai.filter(n => +n.level === Lx.n).map(n => +n.skor));
+      const jur = Lx.jurusList.filter(j => bank.some(q => q.jurus === j));
+      return `<div class="level-card ${locked ? 'locked' : ''}" style="background:${Lx.bg};cursor:default;flex-wrap:wrap">
+        ${locked ? '<span class="lock">🔒</span>' : ''}
+        <span class="n" style="background:${Lx.color}">${Lx.n}</span>
+        <span style="flex:1;min-width:150px;padding-right:22px"><h3>${esc(Lx.nama)}</h3><p>${esc(Lx.desc)}</p><p style="margin-top:4px;font-weight:800;color:var(--ink)">${locked ? 'Terkunci' : !bank.length ? 'Soal belum tersedia' : best ? `Skor terbaik ${best} ${'⭐'.repeat(starsFor(best))}` : `${bank.length} soal siap`}</p></span>
+        ${!locked && bank.length ? `<div class="row" style="flex-basis:100%;gap:6px;margin-top:6px"><button class="btn sm" onclick="startQuiz(${Lx.n},'')">Mulai (semua jurus)</button>${jur.length > 1 ? jur.map(j => `<button class="btn sm ghost" onclick="startQuiz(${Lx.n},'${esc(j)}')">${esc(j)}</button>`).join('') : ''}</div>` : ''}
+      </div>`; }).join('')}</div>
+    <div class="grid g2"><div class="card"><h3>Hasil latihan</h3>${nilai.slice(0, 20).map(n => `<div class="li"><div class="avatar" style="background:${lvOf(n.level).bg}">L${esc(n.level)}</div><div class="meta"><b>Skor ${esc(n.skor)} (${esc(n.benar)}/${esc(n.total)})</b><span class="small muted">${fmtDate(n.tanggal)} · ${Math.floor(n.durasi / 60)}m ${n.durasi % 60}d</span></div><span>${'⭐'.repeat(+n.bintang) || '—'}</span></div>`).join('') || '<div class="empty">Belum ada latihan</div>'}</div>
       <div class="card"><h3>Riwayat bintang</h3>${bin.slice(0, 20).map(b => `<div class="li"><div class="meta"><b>${esc(b.keterangan)}</b><span class="small muted">${fmtDate(b.tanggal)}</span></div><b class="num">${+b.jumlah > 0 ? '+' : ''}${esc(b.jumlah)}</b></div>`).join('') || '<div class="empty">Belum ada</div>'}</div></div>`;
   }
   $('#app').innerHTML = kidTop('Portal Orang Tua') + `<div class="kid-wrap">
     <div class="hero"><div class="avatar" style="width:64px;height:64px;font-size:24px;position:relative;z-index:1">${initials(s.nama)}</div><div style="position:relative;z-index:1;min-width:0"><h2>${esc(s.nama)}</h2><p>${esc(s.id)} · ${esc(L.judul)} · ${stBadge(s.status)}</p></div></div>
-    <div class="row"><div class="tabs">${[['ringkas', 'Ringkasan'], ['spp', `SPP${unpaid.length ? ' 🔴' : ''}`], ['absen', 'Kehadiran'], ['lap', 'Laporan'], ['latihan', 'Latihan & Bintang']].map(([k, l]) => `<button class="${t === k ? 'on' : ''}" onclick="S.tab.ortu='${k}';renderOrtu()">${l}</button>`).join('')}</div></div>
+    <div class="row"><div class="tabs">${[['ringkas', 'Ringkasan'], ['latihan', 'Latihan Soal'], ['harian', 'Perkembangan'], ['absen', 'Kehadiran'], ['spp', `SPP${unpaid.length ? ' 🔴' : ''}`], ['lap', 'Laporan']].map(([k, l]) => `<button class="${t === k ? 'on' : ''}" onclick="S.tab.ortu='${k}';renderOrtu()">${l}</button>`).join('')}</div></div>
     ${body}
   </div>`;
 }
+function ortuWaBayar(per) {
+  const s = S.me.siswa;
+  openWa(S.settings.noWa, `Assalamu'alaikum admin, saya orang tua ${s.nama} (${s.id}) ingin konfirmasi pembayaran SPP${per ? ' ' + fmtPeriod(per) : ''}. Berikut bukti transfernya:`);
+}
 function ortuInv(per) {
   const s = S.me.siswa, x = S.me.SPP.find(v => v.periode === per);
-  modal(x ? 'Kwitansi Pembayaran' : 'Invoice SPP', invoiceHtml(s, per, x, S.settings), `<button class="btn ghost" onclick="printHtml($('#modal .inv').outerHTML,'SPP ${fmtPeriod(per)}')">${ic('print')} Cetak / Simpan PDF</button>${x ? '' : `<button class="btn wa" onclick="openWa('${esc(S.settings.noWa)}','Assalamu\\'alaikum admin, saya orang tua ${esc(s.nama)} (${esc(s.id)}) ingin konfirmasi pembayaran SPP ${fmtPeriod(per)}. Berikut bukti transfernya:')">${ic('wa')} Kirim Bukti Bayar</button>`}`, true);
+  modal(x ? 'Kwitansi Pembayaran' : 'Invoice SPP', invoiceHtml(s, per, x, S.settings), `<button class="btn ghost" onclick="printHtml($('#modal .inv').outerHTML,'SPP ${fmtPeriod(per)}')">${ic('print')} Cetak / Simpan PDF</button>${x ? '' : `<button class="btn wa" onclick="ortuWaBayar('${per}')">${ic('wa')} Kirim Bukti Bayar</button>`}`, true);
 }
 function ortuLap(id) {
   const l = S.me.Laporan.find(x => x.id === id), s = S.me.siswa;
