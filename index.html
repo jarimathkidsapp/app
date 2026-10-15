@@ -429,6 +429,7 @@ const ICONS = {
   cake: '<path d="M4 21h16v-7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 16c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5M12 12V8M12 5.5v-.01"/>',
   alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>',
   key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M14 9l2 2"/>',
+  refresh: '<path d="M20 11a8 8 0 0 0-14.6-4.5M4 4v3.5h3.5M4 13a8 8 0 0 0 14.6 4.5M20 20v-3.5h-3.5"/>',
   money: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v.01M18 14.5v.01"/>',
   note: '<path d="M5 3h10l4 4v14H5z"/><path d="M14 3v5h5M8.5 12.5h7M8.5 16h5"/>',
   book: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7"/>'
@@ -552,7 +553,7 @@ function logout(expired) {
   if (expired) toast('Sesi berakhir, silakan login kembali', true);
 }
 async function startApp() {
-  if (S.role === 'admin') { if (!S.page) S.page = window.innerWidth <= 900 ? 'menu' : 'dashboard'; const r = await call('bootstrap'); S.db = r.data.db; S.settings = r.data.settings; renderAdmin(); }
+  if (S.role === 'admin') { if (!S.page) S.page = window.innerWidth <= 900 ? 'menu' : 'dashboard'; const r = await call('bootstrap'); S.db = r.data.db; S.settings = r.data.settings; lastLoad = Date.now(); S.absDraft = null; S.gDraft = null; renderAdmin(); }
   else if (S.role === 'guru') { const r = await call('guruData'); S.g = r.data; S.settings = r.data.settings; renderGuru(); }
   else { const r = await call('me'); S.me = r.data; S.settings = r.data.settings; renderOrtu(); }
   if (DEMO && !$('.mode-flag')) { const f = document.createElement('div'); f.className = 'mode-flag'; f.textContent = 'MODE DEMO'; document.body.appendChild(f); }
@@ -651,13 +652,16 @@ const Mock = (() => {
   function upsert(t, row) {
     const rows = db()[t]; const r = Object.assign({}, row);
     Object.keys(r).forEach(k => r[k] = r[k] == null ? '' : String(r[k]));
-    const i = r.id ? rows.findIndex(x => x.id === r.id) : -1;
+    let i = r.id ? rows.findIndex(x => x.id === r.id) : -1;
+    const UK = { Absensi: ['tanggal', 'siswaId'], AbsensiGuru: ['tanggal', 'guruId'], SPP: ['siswaId', 'periode'], Laporan: ['siswaId', 'periode'], Gaji: ['guruId', 'periode'] }[t];
+    if (i < 0 && UK) { i = rows.findIndex(x => UK.every(k => String(x[k]) === String(r[k]))); if (i > -1) r.id = rows[i].id; }
     if (i > -1) return Object.assign(rows[i], r);
     if (!r.id) r.id = newId(t, rows); if (t === 'SPP' && !r.noInvoice) r.noInvoice = invoiceNo(r.siswaId, r.periode); rows.push(r);
     return r;
   }
   function pub(s) { const o = {}; ['namaLembaga', 'tagline', 'alamat', 'noWa', 'rekening', 'jatuhTempo', 'nominalSPP', 'tahunAjaran', 'portalUrl', 'soalPerLatihan', 'levels'].forEach(k => o[k] = s[k]); return o; }
   function handle(req) {
+    const fresh = store.get(KEY); if (fresh) mem = fresh; // baca ulang (meniru Google Sheet)
     const D = db(); const a = req.action;
     if (a === 'login') {
       let p = null;
@@ -733,6 +737,7 @@ const NAV = [
   ['spp', 'Pembayaran SPP', 'wallet', 'bg-pink'],
   ['guru', 'Data & Kehadiran Guru', 'teacher', 'bg-purple'],
   ['gaji', 'Rekap Gaji Guru', 'money', 'bg-green'],
+  ['harian', 'Perkembangan Harian', 'note', 'bg-purple'],
   ['belajar', 'Soal & Level', 'calc', 'bg-yellow'],
   ['bintang', 'Bintang & Reward', 'star', 'bg-orange'],
   ['laporan', 'Laporan Bulanan', 'report', 'bg-blue'],
@@ -777,18 +782,38 @@ function renderAdmin() {
       <div class="topbar">
         <button class="icon-btn menu-btn" onclick="toggleSide(true)">${ic('menu')}</button>${S.page !== 'menu' ? `<button class="icon-btn home-btn" title="Beranda" onclick="go('menu')">${ic('home')}</button>` : ''}
         <h2 id="pageTitle"></h2><div class="spacer"></div>
-        <div class="user-pill"><span class="nm">${esc(S.profile.nama)}</span><div class="avatar">${initials(S.profile.nama)}</div></div>
+        <button class="icon-btn" title="Muat ulang data terbaru" onclick="reloadData()">${ic('refresh')}</button><div class="user-pill"><span class="nm">${esc(S.profile.nama)}</span><div class="avatar">${initials(S.profile.nama)}</div></div>
       </div>
       <div class="content" id="page"></div>
     </div></div>`;
   renderPage();
 }
 function toggleSide(on) { $('#side').classList.toggle('open', on); $('#scrim').classList.toggle('hidden', !on); }
-function go(p) { S.page = p; renderAdmin(); window.scrollTo(0, 0); }
+/* data admin diperbarui otomatis dari Google Sheet (agar input guru langsung terlihat) */
+let lastLoad = Date.now(), refreshing = false;
+async function refreshData(silent = true) {
+  if (refreshing) return false; refreshing = true;
+  try {
+    const r = await call('bootstrap', {}, { silent });
+    S.db = r.data.db; S.settings = r.data.settings; lastLoad = Date.now();
+    if (S.absDraft && !S.absDraft._dirty) S.absDraft = null;
+    if (S.gDraft && !S.gDraft._dirty) S.gDraft = null;
+    return true;
+  } catch (e) { return false; } finally { refreshing = false; }
+}
+function safeRerender(p) {
+  const a = document.activeElement;
+  if (S.role === 'admin' && S.page === p && !$('#modal') && !(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName))) renderAdmin();
+}
+function go(p) {
+  S.page = p; renderAdmin(); window.scrollTo(0, 0);
+  if (Date.now() - lastLoad > 10000) refreshData().then(ok => ok && safeRerender(p));
+}
+setInterval(() => { if (S.role === 'admin' && document.visibilityState === 'visible' && Date.now() - lastLoad > 60000) refreshData().then(ok => ok && safeRerender(S.page)); }, 15000);
 function renderPage() {
   const nav = NAV.find(n => n[0] === S.page) || NAV[0];
   $('#pageTitle').textContent = nav[1];
-  const fn = { menu: pgMenu, dashboard: pgDashboard, siswa: pgSiswa, jadwal: pgJadwal, absensi: pgAbsensi, spp: pgSPP, belajar: pgBelajar, bintang: pgBintang, laporan: pgLaporan, guru: pgGuru, gaji: pgGaji, pengaturan: pgPengaturan }[S.page];
+  const fn = { menu: pgMenu, dashboard: pgDashboard, siswa: pgSiswa, jadwal: pgJadwal, absensi: pgAbsensi, spp: pgSPP, belajar: pgBelajar, bintang: pgBintang, laporan: pgLaporan, guru: pgGuru, gaji: pgGaji, harian: belHarian, pengaturan: pgPengaturan }[S.page];
   $('#page').innerHTML = fn();
 }
 const rerender = () => { if (S.role === 'admin') renderAdmin(); };
@@ -832,6 +857,14 @@ function pgDashboard() {
     </div>
     <div class="card"><div class="card-head"><h3>Jadwal hari ini (${hari})</h3><div class="spacer"></div><button class="btn sm ghost" onclick="go('absensi')">Absen</button></div>
       ${jadwal.length ? jadwal.map(j => `<div class="li"><div class="avatar" style="background:var(--green-50);color:var(--green)">${esc(j.sesi)}</div><div class="meta"><b>${esc(j.jamMulai)}–${esc(j.jamSelesai)} · ${esc(j.tipe)}</b><span class="small muted">${esc(guruById(j.guruId).nama)} · ${j.siswaIds ? j.siswaIds.split(',').map(i => esc(siswaById(i.trim()).panggilan || siswaById(i.trim()).nama)).join(', ') : '-'}</span></div></div>`).join('') : `<div class="empty">Tidak ada jadwal les hari ini</div>`}
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><div class="card-head"><h3>Kehadiran guru hari ini</h3><div class="spacer"></div><button class="btn sm ghost" onclick="S.tab.guru='hadir';go('guru')">Detail</button></div>
+      ${D('Guru').filter(g => g.status !== 'Nonaktif').map(g => { const a = D('AbsensiGuru').find(x => x.guruId === g.id && x.tanggal === today); return `<div class="li"><div class="avatar" style="background:var(--purple-50)">${initials(g.nama)}</div><div class="meta"><b>${esc(g.nama)}</b><span class="small muted">${a && a.jamMasuk ? `Masuk ${esc(a.jamMasuk)}${a.jamKeluar ? ' · Pulang ' + esc(a.jamKeluar) + ' · ' + esc(a.jamMengajar) + ' jam' : ''}` : 'Belum absen'}</span></div>${a ? `<span class="badge ${{ Hadir: 'b-green', Izin: 'b-blue', Sakit: 'b-yellow', Alpa: 'b-red' }[a.status] || 'b-gray'}">${esc(a.status)}</span>` : '<span class="badge b-gray">—</span>'}</div>`; }).join('') || '<div class="empty">Belum ada data guru</div>'}
+    </div>
+    <div class="card"><div class="card-head"><h3>Perkembangan harian terbaru</h3><div class="spacer"></div><button class="btn sm ghost" onclick="go('harian')">Semua</button></div>
+      ${[...D('Perkembangan')].sort((a, b) => b.tanggal.localeCompare(a.tanggal)).slice(0, 5).map(x => `<div class="li" style="align-items:flex-start"><div class="avatar" style="background:var(--purple-50)">📝</div><div class="meta"><b>${esc(siswaById(x.siswaId).nama)}</b><span class="small" style="display:block">${esc(String(x.deskripsi).slice(0, 90))}${String(x.deskripsi).length > 90 ? '…' : ''}</span><span class="small muted" style="display:block">${fmtDate(x.tanggal)} · ${esc(guruById(x.guruId).nama)}</span></div></div>`).join('') || '<div class="empty">Belum ada catatan dari guru</div>'}
     </div>
   </div>
   <div class="grid g2">
@@ -973,24 +1006,24 @@ function absInput() {
       <button class="btn ghost" onclick="absAll()">✓ Semua Hadir</button>
     </div>
     <div class="row small" style="margin-bottom:6px"><span class="badge b-green">Hadir ${cnt('Hadir')}</span><span class="badge b-blue">Izin ${cnt('Izin')}</span><span class="badge b-yellow">Sakit ${cnt('Sakit')}</span><span class="badge b-red">Alpa ${cnt('Alpa')}</span><span class="muted">${existing.length ? '· sudah ada data tersimpan untuk tanggal ini' : ''}</span></div>
-    <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>
+    <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th><th>Status</th><th>Keterangan</th><th></th></tr></thead><tbody>
       ${list.map(s => { const d = S.absDraft[s.id] || {}; return `<tr><td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.id)} · Level ${esc(s.level)}</div></td>
       <td><div class="seg">${Object.entries(ST).map(([k, v]) => `<button class="${k} ${d.status === v ? 'on' : ''}" title="${v}" onclick="absSet('${s.id}','${v}')">${k}</button>`).join('')}</div></td>
-      <td><input class="input" style="min-width:150px;padding:7px 10px" placeholder="opsional" value="${esc(d.catatan || '')}" onchange="absNote('${s.id}',this.value)"></td></tr>`; }).join('') || '<tr><td colspan="3"><div class="empty">Tidak ada siswa</div></td></tr>'}
+      <td><input class="input" style="min-width:150px;padding:7px 10px" placeholder="opsional" value="${esc(d.catatan || '')}" onchange="absNote('${s.id}',this.value)"></td><td>${d.id ? `<button class="icon-btn" title="Hapus absensi ini" onclick="delAbs('${d.id}')">${ic('trash')}</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="4"><div class="empty">Tidak ada siswa</div></td></tr>'}
     </tbody></table></div>
     <div class="row" style="margin-top:14px"><span class="small muted">H = Hadir · I = Izin · S = Sakit · A = Tanpa keterangan</span><div class="spacer"></div><button class="btn" onclick="absSave()">Simpan Absensi</button></div>
   </div>`;
 }
-function absSet(id, v) { S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { status: v }); renderPage(); }
-function absNote(id, v) { S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { catatan: v }); }
+function absSet(id, v) { S.absDraft._dirty = true; S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { status: v }); renderPage(); }
+function absNote(id, v) { S.absDraft._dirty = true; S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { catatan: v }); }
 function absAll() { const sesi = D('Jadwal').find(j => j.id === S.f.absJadwal); let list = siswaAktif(); if (sesi) { const ids = sesi.siswaIds.split(','); list = list.filter(s => ids.includes(s.id)); } list.forEach(s => { if (!(S.absDraft[s.id] || {}).status) absSetQuiet(s.id, 'Hadir'); }); renderPage(); }
-function absSetQuiet(id, v) { S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { status: v }); }
+function absSetQuiet(id, v) { S.absDraft._dirty = true; S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { status: v }); }
 async function absSave() {
   const date = S.f.absDate || todayStr(), guruId = ($('#absGuru') || {}).value || '';
   const rows = Object.entries(S.absDraft).filter(([k, v]) => k !== '_date' && v.status).map(([sid, v]) => ({ id: v.id || '', tanggal: date, siswaId: sid, status: v.status, guruId, catatan: v.catatan || '' }));
   if (!rows.length) return toast('Belum ada status yang dipilih', true);
   rows.forEach(r => { if (!r.id) delete r.id; });
-  try { const saved = await saveRows('Absensi', rows); saved.forEach(r => S.absDraft[r.siswaId].id = r.id); toast(`Absensi ${fmtDate(date)} tersimpan (${saved.length} siswa)`); renderPage(); } catch (e) { toast(e.message, true); }
+  try { const saved = await saveRows('Absensi', rows); saved.forEach(r => S.absDraft[r.siswaId].id = r.id); S.absDraft._dirty = false; toast(`Absensi ${fmtDate(date)} tersimpan (${saved.length} siswa)`); renderPage(); } catch (e) { toast(e.message, true); }
 }
 function absRekap() {
   const p = S.f.absP || thisPeriod();
@@ -1000,9 +1033,15 @@ function absRekap() {
   ${rows.map(({ s, c }) => `<tr style="cursor:pointer" onclick="absDetail('${s.id}','${p}')"><td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.id)}</div></td><td class="c num cell-ok">${c.Hadir}</td><td class="c num">${c.Izin}</td><td class="c num">${c.Sakit}</td><td class="c num ${c.Alpa ? 'cell-no' : ''}">${c.Alpa}</td><td class="c num"><b>${c.total}</b></td><td class="c num">${c.total ? Math.round(c.Hadir / c.total * 100) + '%' : '-'}</td></tr>`).join('') || '<tr><td colspan="7"><div class="empty">Belum ada data</div></td></tr>'}
   </tbody></table></div></div>`;
 }
+function delAbs(id, after) {
+  const a = D('Absensi').find(x => x.id === id); if (!a) return;
+  confirmBox(`Hapus absensi <b>${esc(siswaById(a.siswaId).nama)}</b> tanggal ${fmtDate(a.tanggal)}?`, async () => {
+    try { await removeRow('Absensi', id); if (S.absDraft && S.absDraft[a.siswaId] && S.absDraft[a.siswaId].id === id) delete S.absDraft[a.siswaId]; toast('Absensi dihapus'); after ? after() : renderPage(); } catch (e) { toast(e.message, true); }
+  });
+}
 function absDetail(sid, p) {
   const c = absMonth(sid, p); const s = siswaById(sid);
-  modal(`${esc(s.nama)} — ${fmtPeriod(p)}`, c.rows.length ? `<table class="t"><tbody>${c.rows.sort((a, b) => a.tanggal.localeCompare(b.tanggal)).map(r => `<tr><td>${dayName(r.tanggal)}, ${fmtDate(r.tanggal)}</td><td><span class="badge ${{ Hadir: 'b-green', Izin: 'b-blue', Sakit: 'b-yellow', Alpa: 'b-red' }[r.status]}">${r.status}</span></td><td class="small muted">${esc(r.catatan || '')}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">Belum ada absensi</div>');
+  modal(`${esc(s.nama)} — ${fmtPeriod(p)}`, c.rows.length ? `<table class="t"><tbody>${c.rows.sort((a, b) => a.tanggal.localeCompare(b.tanggal)).map(r => `<tr><td>${dayName(r.tanggal)}, ${fmtDate(r.tanggal)}</td><td><span class="badge ${{ Hadir: 'b-green', Izin: 'b-blue', Sakit: 'b-yellow', Alpa: 'b-red' }[r.status]}">${r.status}</span></td><td class="small muted">${esc(r.catatan || '')}<span class="small"> ${r.guruId ? '· ' + esc(guruById(r.guruId).nama) : ''}</span></td><td class="r"><button class="icon-btn" title="Hapus" onclick="delAbs('${r.id}',()=>{renderPage();absDetail('${sid}','${p}')})">${ic('trash')}</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">Belum ada absensi</div>');
 }
 function csvAbs(p) {
   const rows = [['ID', 'Nama', 'Hadir', 'Izin', 'Sakit', 'Alpa', 'Pertemuan']];
@@ -1129,8 +1168,8 @@ function sppRiwayat() {
 /* ================= SOAL & LEVEL ================= */
 function pgBelajar() {
   const t = S.tab.bel || 'soal';
-  return tabs('bel', [['soal', 'Bank Soal'], ['level', 'Level Siswa'], ['harian', 'Perkembangan Harian'], ['hasil', 'Hasil Latihan']], 'soal') +
-    (t === 'soal' ? belSoal() : t === 'level' ? belLevel() : t === 'harian' ? belHarian() : belHasil());
+  return tabs('bel', [['soal', 'Bank Soal'], ['level', 'Level Siswa'], ['hasil', 'Hasil Latihan']], 'soal') +
+    (t === 'soal' ? belSoal() : t === 'level' ? belLevel() : belHasil());
 }
 function belLevel() {
   const counts = [1, 2, 3, 4].map(l => siswaAktif().filter(s => +s.level === l).length);
@@ -1354,29 +1393,36 @@ function guruHadir() {
     D('AbsensiGuru').filter(a => a.tanggal === date).forEach(a => S.gDraft[a.guruId] = { ...a });
   }
   return `<div class="card"><div class="card-head"><div class="field"><label>Tanggal</label><input class="input" type="date" value="${date}" onchange="setF('gDate',this.value)"></div><div class="spacer"></div><span class="small muted">${hari}</span></div>
-  ${gs.length ? `<div class="table-wrap"><table class="t"><thead><tr><th>Guru</th><th>Status</th><th>Jam masuk</th><th>Jam keluar</th><th>Jam mengajar</th><th>Catatan</th></tr></thead><tbody>
+  ${gs.length ? `<div class="table-wrap"><table class="t"><thead><tr><th>Guru</th><th>Status</th><th>Jam masuk</th><th>Jam keluar</th><th>Jam mengajar</th><th>Catatan</th><th></th></tr></thead><tbody>
   ${gs.map(g => { const d = S.gDraft[g.id] || {}; const sesi = D('Jadwal').filter(j => j.hari === hari && j.guruId === g.id).length; return `<tr>
     <td><b>${esc(g.nama)}</b><div class="small muted">${sesi} sesi terjadwal hari ini</div></td>
     <td><div class="seg">${Object.entries(ST).map(([k, v]) => `<button class="${k} ${d.status === v ? 'on' : ''}" onclick="gSet('${g.id}','status','${v}',true)">${k}</button>`).join('')}</div></td>
     <td><input class="input" type="time" style="padding:7px 9px" value="${esc(d.jamMasuk || '')}" onchange="gSet('${g.id}','jamMasuk',this.value)"></td>
     <td><input class="input" type="time" style="padding:7px 9px" value="${esc(d.jamKeluar || '')}" onchange="gSet('${g.id}','jamKeluar',this.value)"></td>
     <td><input class="input" id="jm_${g.id}" inputmode="decimal" style="padding:7px 9px;width:80px" value="${esc(d.jamMengajar || '')}" onchange="gSet('${g.id}','jamMengajar',this.value)"></td>
-    <td><input class="input" style="padding:7px 9px;min-width:120px" value="${esc(d.catatan || '')}" onchange="gSet('${g.id}','catatan',this.value)"></td></tr>`; }).join('')}
+    <td><input class="input" style="padding:7px 9px;min-width:120px" value="${esc(d.catatan || '')}" onchange="gSet('${g.id}','catatan',this.value)"></td><td>${d.id ? `<button class="icon-btn" title="Hapus" onclick="delAbsGuru('${d.id}')">${ic('trash')}</button>` : ''}</td></tr>`; }).join('')}
   </tbody></table></div>
   <div class="row" style="margin-top:14px"><span class="small muted">Jam mengajar terisi otomatis dari jam masuk–keluar (bisa diubah).</span><div class="spacer"></div><button class="btn" onclick="gSave()">Simpan Kehadiran Guru</button></div>`
     : `<div class="empty">Belum ada data guru. Tambahkan di tab <b>Data Guru</b>.</div>`}</div>`;
 }
 function gSet(id, k, v, re) {
+  S.gDraft._dirty = true;
   const d = S.gDraft[id] = Object.assign(S.gDraft[id] || {}, { [k]: v });
   if (k === 'status' && v === 'Hadir' && !d.jamMasuk) { const n = new Date(); d.jamMasuk = `${pad(n.getHours())}:${pad(n.getMinutes())}`; }
   if (k === 'jamMasuk' || k === 'jamKeluar') { const j = jamDiff(d.jamMasuk, d.jamKeluar); if (j) { d.jamMengajar = j; const el = $('#jm_' + id); if (el) el.value = j; } }
   if (re) renderPage();
 }
+function delAbsGuru(id) {
+  const a = D('AbsensiGuru').find(x => x.id === id); if (!a) return;
+  confirmBox(`Hapus kehadiran <b>${esc(guruById(a.guruId).nama)}</b> tanggal ${fmtDate(a.tanggal)}?`, async () => {
+    try { await removeRow('AbsensiGuru', id); if (S.gDraft) delete S.gDraft[a.guruId]; toast('Dihapus'); renderPage(); } catch (e) { toast(e.message, true); }
+  });
+}
 async function gSave() {
   const date = S.f.gDate || todayStr();
   const rows = Object.entries(S.gDraft).filter(([k, v]) => k !== '_date' && v.status).map(([gid, v]) => { const r = { tanggal: date, guruId: gid, status: v.status, jamMasuk: v.jamMasuk || '', jamKeluar: v.jamKeluar || '', jamMengajar: v.status === 'Hadir' ? (v.jamMengajar || '') : '0', catatan: v.catatan || '' }; if (v.id) r.id = v.id; return r; });
   if (!rows.length) return toast('Pilih status kehadiran guru dulu', true);
-  try { const saved = await saveRows('AbsensiGuru', rows); saved.forEach(r => S.gDraft[r.guruId].id = r.id); toast('Kehadiran guru tersimpan'); renderPage(); } catch (e) { toast(e.message, true); }
+  try { const saved = await saveRows('AbsensiGuru', rows); saved.forEach(r => S.gDraft[r.guruId].id = r.id); S.gDraft._dirty = false; toast('Kehadiran guru tersimpan'); renderPage(); } catch (e) { toast(e.message, true); }
 }
 function guruRekap() {
   const p = S.f.gP || thisPeriod();
@@ -1543,7 +1589,7 @@ async function changePw() {
   try { await call('changePassword', { oldPass: f.oldPass, newPass: f.newPass }); toast('Password berhasil diganti'); $('#fPw').reset(); } catch (e) { toast(e.message, true); }
 }
 function backupJson() { downloadFile(`Backup-JariMath-${todayStr()}.json`, JSON.stringify({ settings: S.settings, db: S.db }, null, 1), 'application/json'); }
-async function reloadData() { const r = await call('bootstrap'); S.db = r.data.db; S.settings = r.data.settings; renderAdmin(); toast('Data diperbarui'); }
+async function reloadData() { if (S.absDraft) S.absDraft._dirty = false; if (S.gDraft) S.gDraft._dirty = false; if (await refreshData(false)) { renderAdmin(); toast('Data terbaru dimuat'); } else toast('Gagal memuat data', true); }
 
 /* =========================================================
    HEADER bersama (portal guru & orang tua)
@@ -1597,9 +1643,17 @@ function renderGuru() {
       <div class="card"><h3>Absen saya hari ini</h3>${absenBox}</div>
       <div class="card"><h3>Jadwal mengajar hari ini</h3>${jHari.map(j => `<div class="li"><div class="avatar" style="background:var(--green-50);color:var(--green)">${esc(j.sesi)}</div><div class="meta"><b>${esc(j.jamMulai)}–${esc(j.jamSelesai)} · ${esc(j.tipe)}</b><span class="small muted">${j.siswaIds.split(',').filter(Boolean).map(id => esc((S.g.siswa.find(s => s.id === id.trim()) || {}).panggilan || (S.g.siswa.find(s => s.id === id.trim()) || {}).nama || id)).join(', ')}</span></div></div>`).join('') || '<div class="empty" style="padding:12px">Tidak ada jadwal hari ini</div>'}</div>
     </div>
-    <div class="row"><div class="tabs">${[['absen', 'Absensi Siswa'], ['harian', 'Perkembangan Harian'], ['siswa', 'Siswa Saya'], ['riwayat', 'Riwayat Absen Saya']].map(([k, l]) => `<button class="${t === k ? 'on' : ''}" onclick="S.tab.gp='${k}';renderGuru()">${l}</button>`).join('')}</div></div>
+    <div class="row"><div class="tabs">${[['absen', 'Absensi Siswa'], ['harian', 'Perkembangan Harian'], ['siswa', 'Siswa Saya'], ['riwayat', 'Riwayat Absen Saya']].map(([k, l]) => `<button class="${t === k ? 'on' : ''}" onclick="gTab('${k}')">${l}</button>`).join('')}</div></div>
     ${body}
   </div>`;
+}
+let gLoad = Date.now();
+async function gRefresh() {
+  try { const r = await call('guruData', {}, { silent: true }); S.g = r.data; gLoad = Date.now(); if (S.gaDraft && !S.gaDraft._dirty) S.gaDraft = null; return true; } catch (e) { return false; }
+}
+function gTab(k) {
+  S.tab.gp = k; renderGuru();
+  if (Date.now() - gLoad > 15000) gRefresh().then(ok => { const a = document.activeElement; if (ok && S.tab.gp === k && !$('#modal') && !(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName))) renderGuru(); });
 }
 async function gAbsen(mode) {
   try { const r = await call('guruAbsen', { mode }); const i = S.g.AbsensiGuru.findIndex(a => a.id === r.row.id); i > -1 ? S.g.AbsensiGuru[i] = r.row : S.g.AbsensiGuru.push(r.row); toast(mode === 'masuk' ? 'Absen masuk tercatat ✓' : mode === 'pulang' ? 'Absen pulang tercatat ✓' : 'Tercatat'); renderGuru(); }
@@ -1614,12 +1668,12 @@ function gTabAbsen() {
     <div class="field" style="flex:1;min-width:200px"><label>Kelas / sesi</label>${gScopeSelect('gaScope', date)}</div></div>
     ${list.map(s => { const d = S.gaDraft[s.id] || {}; return `<div class="li" style="flex-wrap:wrap"><div class="meta" style="min-width:150px"><b>${esc(s.nama)}</b><span class="small muted">${esc(s.id)} · Level ${esc(s.level)}</span></div>
       <div class="seg">${Object.entries(ST_ALL).map(([k, v]) => `<button class="${k} ${d.status === v ? 'on' : ''}" onclick="gaSet('${s.id}','${v}')">${k}</button>`).join('')}</div>
-      <input class="input" style="flex-basis:100%;padding:7px 10px" placeholder="Keterangan (opsional)" value="${esc(d.catatan || '')}" onchange="(S.gaDraft['${s.id}']=S.gaDraft['${s.id}']||{}).catatan=this.value"></div>`; }).join('') || '<div class="empty">Tidak ada siswa. Pilih "Semua siswa aktif".</div>'}
+      <input class="input" style="flex-basis:100%;padding:7px 10px" placeholder="Keterangan (opsional)" value="${esc(d.catatan || '')}" onchange="S.gaDraft._dirty=true;(S.gaDraft['${s.id}']=S.gaDraft['${s.id}']||{}).catatan=this.value"></div>`; }).join('') || '<div class="empty">Tidak ada siswa. Pilih "Semua siswa aktif".</div>'}
     <div class="row" style="margin-top:14px"><button class="btn ghost" onclick="gaAll()">✓ Semua Hadir</button><div class="spacer"></div><button class="btn" onclick="gaSave()">Simpan Absensi</button></div>
     <p class="small muted" style="margin-top:8px">H = Hadir · I = Izin · S = Sakit · A = Tanpa keterangan</p></div>`;
 }
 const ST_ALL = { H: 'Hadir', I: 'Izin', S: 'Sakit', A: 'Alpa' };
-function gaSet(id, v) { S.gaDraft[id] = Object.assign(S.gaDraft[id] || {}, { status: v }); renderGuru(); }
+function gaSet(id, v) { S.gaDraft._dirty = true; S.gaDraft[id] = Object.assign(S.gaDraft[id] || {}, { status: v }); renderGuru(); }
 function gaAll() { gSiswaList(S.f.gaScope || (S.g.siswa.some(s => s.diajar) ? 'mine' : 'all')).forEach(s => { if (!(S.gaDraft[s.id] || {}).status) S.gaDraft[s.id] = Object.assign(S.gaDraft[s.id] || {}, { status: 'Hadir' }); }); renderGuru(); }
 async function gaSave() {
   const date = S.f.gaDate || todayStr();
@@ -1628,7 +1682,7 @@ async function gaSave() {
   try {
     const r = await call('guruSaveAbsensi', { rows });
     r.rows.forEach(x => { const i = S.g.Absensi.findIndex(a => a.tanggal === x.tanggal && a.siswaId === x.siswaId); i > -1 ? S.g.Absensi[i] = x : S.g.Absensi.push(x); });
-    toast(`Absensi ${fmtDate(date)} tersimpan (${r.rows.length} siswa)`); renderGuru();
+    S.gaDraft._dirty = false; toast(`Absensi ${fmtDate(date)} tersimpan (${r.rows.length} siswa)`); renderGuru();
   } catch (e) { toast(e.message, true); }
 }
 function gTabHarian() {
