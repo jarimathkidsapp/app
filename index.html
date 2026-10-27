@@ -268,6 +268,49 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
 @keyframes starpop{from{transform:scale(0) rotate(-60deg)}70%{transform:scale(1.3)}}
 .score-big{font-family:var(--font-h);font-size:64px;color:var(--pink);font-weight:700;line-height:1}
 
+
+/* ---------- tema warna per portal (mengikuti contoh desain) ---------- */
+body.role-admin{--pink:#8E2A7E;--pink-d:#6B1E5F;--pink-50:#F7EAF4;--pink-100:#EBCDE4}
+body.role-ortu{--pink:#159A6B;--pink-d:#0E774F;--pink-50:#E3F6EE;--pink-100:#C4EADA}
+body.role-admin .side,body.role-guru .side,body.role-ortu .side{background:linear-gradient(180deg,#fff 0%,var(--pink-50) 140%)}
+.brand .role-tag,.role-tag{color:#fff!important;display:inline-flex;align-items:center;gap:6px;background:var(--pink);color:#fff;font-weight:800;font-size:12px;padding:3px 10px;border-radius:8px;margin-top:3px}
+/* login dua kolom */
+.login-card.split{max-width:880px;display:grid;grid-template-columns:1fr 1.05fr;padding:0;overflow:hidden;text-align:left;border:1px solid var(--pink-100)}
+.login-side{background:var(--pink-50);padding:30px 28px;display:flex;flex-direction:column;gap:10px;justify-content:center;position:relative;overflow:hidden}
+.login-side .brand-row{display:flex;align-items:center;gap:12px}
+.login-side .brand-row img{width:64px;height:64px}
+.login-side .brand-row b{font-family:var(--font-h);font-size:22px;color:var(--pink);display:block;line-height:1.1}
+.login-side .illus{font-size:96px;line-height:1.05;margin:14px 0 6px;text-align:center}
+.login-side p{color:var(--pink-d);font-weight:700}
+.login-side:after{content:"";position:absolute;right:-50px;bottom:-50px;width:170px;height:170px;border-radius:50%;background:var(--pink-100);opacity:.55}
+.login-main{padding:28px 30px}
+.login-main h2{font-size:22px;margin-top:16px}
+.login-main .tabs{margin:0;justify-content:stretch}
+.login-main .tabs button{flex:1}
+.login-main form{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+@media(max-width:720px){.login-card.split{grid-template-columns:1fr}.login-side{padding:20px;align-items:center;text-align:center}.login-side .illus{font-size:64px;margin:6px 0 0}.login-main{padding:22px 20px}}
+/* kartu angka dengan ikon */
+.kpi{background:#fff;border-radius:var(--r);border:1px solid #F1E4EC;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;margin-bottom:8px}
+.kpi .ico svg{width:22px;height:22px}
+.kpi .lbl{font-size:13px;font-weight:700;color:var(--ink-2)}
+.kpi .val{font-family:var(--font-h);font-size:26px;font-weight:600;line-height:1.15}
+.kpi .sub{font-size:12px;color:var(--muted)}
+.kpi.alert{border-color:#F6C8CA;background:#FFF8F8}
+.welcome{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.welcome h2{font-size:23px;color:var(--pink-d)}
+.date-chip{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:6px 12px;font-weight:800;font-size:13px;white-space:nowrap}
+.task{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-weight:600}
+.task:last-child{border-bottom:0}
+.task .box{width:22px;height:22px;border-radius:7px;border:2px solid var(--pink-100);display:grid;place-items:center;flex-shrink:0;font-size:13px;color:#fff}
+.task.done .box{background:var(--green);border-color:var(--green)}
+.task.done span{color:var(--muted);text-decoration:line-through}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;font-weight:700;color:var(--ink-2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.g-chart{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+@media(max-width:900px){.g-chart{grid-template-columns:1fr}}
+.donut-wrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+
 /* print */
 @media print{
   body *{visibility:hidden}
@@ -475,6 +518,24 @@ function hitungSoal(t) {
 }
 const starsFor = skor => skor >= 90 ? 3 : skor >= 75 ? 2 : skor >= 60 ? 1 : 0;
 
+/* ---------------- JADWAL: satu sesi (hari + sesi + jam) bisa berisi beberapa guru ---------------- */
+const isAktif = s => String(s.status || 'Aktif').trim().toLowerCase() === 'aktif';
+const splitIds = v => String(v || '').split(',').map(x => x.trim().toUpperCase()).filter(Boolean);
+function sesiGroups(jadwal, hari) {
+  const m = {};
+  (jadwal || []).filter(j => j.hari === hari).forEach(j => {
+    const k = `${j.sesi}|${j.jamMulai}`;
+    const g = m[k] = m[k] || { key: 'G|' + k, sesi: j.sesi, jamMulai: j.jamMulai, jamSelesai: j.jamSelesai, tipe: j.tipe, items: [], ids: [] };
+    g.items.push(j);
+    splitIds(j.siswaIds).forEach(id => { if (!g.ids.includes(id)) g.ids.push(id); });
+  });
+  return Object.values(m).sort((a, b) => (a.jamMulai || '').localeCompare(b.jamMulai || '') || String(a.sesi).localeCompare(String(b.sesi)));
+}
+function namaList(ids, nameOf, max = 4) {
+  const n = ids.map(nameOf);
+  return n.length ? n.slice(0, max).join(', ') + (n.length > max ? ` +${n.length - max}` : '') : '';
+}
+
 /* ---------------- SPP helpers (dipakai admin & ortu) ---------------- */
 function sppNominal(s, settings) { return Number(s.sppNominal) || Number(settings.nominalSPP) || 0; }
 function billablePeriods(s, upto = thisPeriod(), max = 12) {
@@ -515,25 +576,82 @@ function invoiceWaText(s, periode, pay, settings) {
 }
 
 /* ---------------- LOGIN ---------------- */
+function setRoleTheme(role) { document.body.classList.remove('role-admin', 'role-guru', 'role-ortu'); if (role) document.body.classList.add('role-' + role); }
+const ROLE_INFO = {
+  admin: { nama: 'Admin', illus: '👩💻📊', tag: 'Kelola seluruh kegiatan les dengan mudah dan terstruktur.', sub: 'Gunakan akun admin Anda.', lbl: ['Username', 'Password'] },
+  guru: { nama: 'Guru', illus: '👩📘✏️', tag: 'Bersama kita membantu anak-anak mencapai potensi terbaiknya.', sub: 'Gunakan ID & PIN guru dari admin.', lbl: ['ID Guru (contoh: G01)', 'PIN Guru'] },
+  ortu: { nama: 'Orang Tua', illus: '👨👩👧', tag: 'Pantau perkembangan belajar anak Anda dengan mudah.', sub: 'Gunakan ID siswa & kode akses yang dikirim admin.', lbl: ['ID Siswa (contoh: JMK001)', 'Kode Akses Orang Tua'] }
+};
 function renderLogin(role = S.loginRole || 'admin') {
   if (!['admin', 'guru', 'ortu'].includes(role)) role = 'admin';
-  S.loginRole = role;
-  const lbl = { admin: ['Username', 'Password'], guru: ['ID Guru (contoh: G01)', 'PIN Guru'], ortu: ['ID Siswa (contoh: JMK001)', 'Kode Akses Orang Tua'] }[role] || ['Username', 'Password'];
-  $('#app').innerHTML = `<div class="login-wrap"><div class="login-card">
-    <img class="logo" src="${LOGO}" alt="JariMath Kids">
-    <h1>Portal JariMath Kids</h1>
-    <p class="muted small">Berhitung cepat dengan jari tangan ✋</p>
-    <div class="tabs">
-      ${[['admin', 'Admin'], ['guru', 'Guru'], ['ortu', 'Orang Tua']].map(([k, v]) => `<button class="${k === role ? 'on' : ''}" onclick="renderLogin('${k}')">${v}</button>`).join('')}
+  S.loginRole = role; setRoleTheme(role);
+  const R = ROLE_INFO[role];
+  $('#app').innerHTML = `<div class="login-wrap"><div class="login-card split">
+    <div class="login-side">
+      <div class="brand-row"><img src="${LOGO}" alt=""><div><b>${esc((S.settings && S.settings.namaLembaga) || 'JariMath Kids')}</b><span class="role-tag">Portal ${R.nama}</span></div></div>
+      <div class="illus">${R.illus}</div>
+      <p>${R.tag}</p>
     </div>
-    <form onsubmit="doLogin(event)">
-      <div class="field"><label>${lbl[0]}</label><input class="input" name="user" autocomplete="username" required ${role !== 'admin' ? 'style="text-transform:uppercase"' : ''}></div>
-      <div class="field"><label>${lbl[1]}</label><input class="input" name="pass" type="password" ${role !== 'admin' ? 'inputmode="numeric"' : ''} autocomplete="current-password" required></div>
-      <button class="btn block" style="margin-top:4px;padding:13px">Masuk</button>
-    </form>
-    <p class="login-hint">${role === 'admin' ? 'Khusus pengelola JariMath Kids.' : role === 'guru' ? 'ID & PIN guru diberikan oleh admin.' : 'Kode akses dikirim admin lewat WhatsApp.'}</p>
-    ${DEMO ? `<div class="demo-box"><b>Mode Demo</b> — data contoh tersimpan di browser ini.<br>Admin: <b>admin</b> / <b>jarimath123</b> · Guru: <b>G01</b> PIN <b>1111</b> · Ortu: <b>JMK001</b> kode <b>5678</b></div>` : ''}
+    <div class="login-main">
+      <div class="tabs">${[['admin', 'Admin'], ['guru', 'Guru'], ['ortu', 'Orang Tua']].map(([k, v]) => `<button class="${k === role ? 'on' : ''}" onclick="renderLogin('${k}')">${v}</button>`).join('')}</div>
+      <h2>Masuk ke Portal ${R.nama}</h2>
+      <p class="muted small">${R.sub}</p>
+      <form onsubmit="doLogin(event)">
+        <div class="field"><label>${R.lbl[0]}</label><input class="input" name="user" autocomplete="username" required ${role !== 'admin' ? 'style="text-transform:uppercase"' : ''}></div>
+        <div class="field"><label>${R.lbl[1]}</label><input class="input" name="pass" type="password" ${role !== 'admin' ? 'inputmode="numeric"' : ''} autocomplete="current-password" required></div>
+        <button class="btn block" style="margin-top:4px;padding:13px">Masuk</button>
+      </form>
+      <p class="login-hint">${role === 'admin' ? 'Lupa password? Hubungi pengelola untuk reset.' : role === 'guru' ? 'Lupa PIN? Minta admin mengirim ulang lewat WhatsApp.' : 'Belum punya kode akses? Hubungi admin lewat WhatsApp.'}</p>
+      ${DEMO ? `<div class="demo-box"><b>Mode Demo</b> — data contoh tersimpan di browser ini.<br>Admin: <b>admin</b> / <b>jarimath123</b> · Guru: <b>G01</b> PIN <b>1111</b> · Ortu: <b>JMK001</b> kode <b>5678</b></div>` : ''}
+    </div>
   </div></div>`;
+}
+/* ---------- kerangka sidebar (dipakai portal guru & orang tua) ---------- */
+function shellHtml({ nav, cur, goFn, roleName, title, name, onRefresh, body }) {
+  return `<div class="shell">
+    <aside class="side" id="side">
+      <div class="brand"><img src="${LOGO}" alt=""><div><b>${esc(S.settings.namaLembaga || 'JariMath Kids')}</b><span class="role-tag">Portal ${roleName}</span></div></div>
+      ${nav.map(([k, l, i, cnt]) => `<button class="nav-item ${cur === k ? 'on' : ''}" onclick="${goFn}('${k}');toggleSide(false)">${ic(i)}<span>${l}</span>${cnt ? `<span class="cnt">${cnt}</span>` : ''}</button>`).join('')}
+      <div class="spacer"></div>
+      <button class="nav-item" onclick="logout()">${ic('logout')}<span>Keluar</span></button>
+    </aside>
+    <div id="scrim" class="scrim hidden" onclick="toggleSide(false)"></div>
+    <div class="main">
+      <div class="topbar">
+        <button class="icon-btn menu-btn" onclick="toggleSide(true)">${ic('menu')}</button>
+        <h2>${esc(title)}</h2><div class="spacer"></div>
+        ${onRefresh ? `<button class="icon-btn" title="Muat ulang data terbaru" onclick="${onRefresh}">${ic('refresh')}</button>` : ''}
+        <div class="user-pill"><span class="nm">${esc(name)}</span><div class="avatar">${initials(name)}</div></div>
+      </div>
+      <div class="content">${body}</div>
+    </div></div>`;
+}
+function kpi(icon, color, bg, lbl, val, sub = '', extra = '') {
+  return `<div class="kpi ${extra}"><div class="ico" style="background:${bg};color:${color}">${ic(icon)}</div><span class="lbl">${lbl}</span><span class="val num">${val}</span>${sub ? `<span class="sub">${sub}</span>` : ''}</div>`;
+}
+/* ---------- grafik SVG sederhana ---------- */
+const ST_COLOR = { Hadir: '#18A058', Izin: '#2F7BEA', Sakit: '#F59E0B', Alpa: '#E5484D' };
+function barChart(days) {
+  if (!days.length) return '<div class="empty">Belum ada data absensi</div>';
+  const W = 560, H = 210, pl = 26, pb = 28, pt = 10, keys = ['Hadir', 'Izin', 'Sakit', 'Alpa'];
+  const max = Math.max(4, ...days.flatMap(d => keys.map(k => d[k] || 0)));
+  const step = Math.ceil(max / 4), top = step * 4;
+  const gw = (W - pl - 6) / days.length, bw = Math.max(5, Math.min(14, (gw - 14) / 4));
+  const y = v => pt + (H - pt - pb) * (1 - v / top);
+  let g = '';
+  for (let i = 0; i <= 4; i++) { const v = step * i; g += `<line x1="${pl}" x2="${W - 4}" y1="${y(v)}" y2="${y(v)}" stroke="#F1E6EE"/><text x="${pl - 6}" y="${y(v) + 4}" font-size="10" text-anchor="end" fill="#8E8BA6">${v}</text>`; }
+  days.forEach((d, i) => {
+    const x0 = pl + gw * i + (gw - bw * 4 - 6) / 2;
+    keys.forEach((k, j) => { const v = d[k] || 0; if (v) g += `<rect x="${x0 + j * (bw + 2)}" y="${y(v)}" width="${bw}" height="${y(0) - y(v)}" rx="3" fill="${ST_COLOR[k]}"><title>${k}: ${v}</title></rect>`; });
+    g += `<text x="${pl + gw * i + gw / 2}" y="${H - 8}" font-size="10.5" text-anchor="middle" fill="#5A5775">${esc(d.label)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Grafik kehadiran">${g}</svg><div class="legend" style="justify-content:center;margin-top:6px">${keys.map(k => `<span><i style="background:${ST_COLOR[k]}"></i>${k}</span>`).join('')}</div>`;
+}
+function donut(parts, center, sub) {
+  const total = parts.reduce((a, p) => a + p.v, 0) || 1, R = 52, C = 2 * Math.PI * R;
+  let off = 0, arcs = '';
+  parts.forEach(p => { const len = C * p.v / total; if (p.v) arcs += `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${p.color}" stroke-width="18" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"/>`; off += len; });
+  return `<svg viewBox="0 0 140 140" width="150" height="150"><circle cx="70" cy="70" r="${R}" fill="none" stroke="#F3ECF1" stroke-width="18"/>${arcs}<text x="70" y="68" text-anchor="middle" font-size="15" font-weight="700" fill="#2D2A4A">${esc(center)}</text><text x="70" y="86" text-anchor="middle" font-size="10" fill="#8E8BA6">${esc(sub)}</text></svg>`;
 }
 async function doLogin(e) {
   e.preventDefault();
@@ -553,6 +671,7 @@ function logout(expired) {
   if (expired) toast('Sesi berakhir, silakan login kembali', true);
 }
 async function startApp() {
+  setRoleTheme(S.role);
   if (S.role === 'admin') { if (!S.page) S.page = window.innerWidth <= 900 ? 'menu' : 'dashboard'; const r = await call('bootstrap'); S.db = r.data.db; S.settings = r.data.settings; lastLoad = Date.now(); S.absDraft = null; S.gDraft = null; renderAdmin(); }
   else if (S.role === 'guru') { const r = await call('guruData'); S.g = r.data; S.settings = r.data.settings; renderGuru(); }
   else { const r = await call('me'); S.me = r.data; S.settings = r.data.settings; renderOrtu(); }
@@ -688,7 +807,7 @@ const Mock = (() => {
       if (a === 'guruData') {
         const g = D.Guru.find(x => x.id === s.uid); const jad = D.Jadwal.filter(j => j.guruId === s.uid); const dj = {}; jad.forEach(j => j.siswaIds.split(',').forEach(x => x && (dj[x.trim()] = 1)));
         const safe = Object.assign({}, g); delete safe.pin; delete safe.tarif; delete safe.tipeTarif;
-        return { ok: true, data: J({ guru: safe, settings: pub(D.Pengaturan), siswa: D.Siswa.filter(x => x.status === 'Aktif').map(x => ({ id: x.id, nama: x.nama, panggilan: x.panggilan, level: x.level, diajar: dj[x.id] ? '1' : '' })), Jadwal: jad, Absensi: D.Absensi, AbsensiGuru: D.AbsensiGuru.filter(r => r.guruId === s.uid), Perkembangan: D.Perkembangan.filter(r => r.guruId === s.uid || dj[r.siswaId]) }) };
+        return { ok: true, data: J({ guru: safe, settings: pub(D.Pengaturan), siswa: D.Siswa.filter(isAktif).map(x => ({ id: x.id, nama: x.nama, panggilan: x.panggilan, level: x.level, diajar: dj[x.id] ? '1' : '' })), Jadwal: jad, JadwalAll: D.Jadwal, Absensi: D.Absensi, AbsensiGuru: D.AbsensiGuru.filter(r => r.guruId === s.uid), Perkembangan: D.Perkembangan.filter(r => r.guruId === s.uid || dj[r.siswaId]) }) };
       }
       if (a === 'guruAbsen') {
         const row = D.AbsensiGuru.find(r => r.guruId === s.uid && r.tanggal === tg) || { tanggal: tg, guruId: s.uid, jamMasuk: '', jamKeluar: '', jamMengajar: '', catatan: '' };
@@ -750,9 +869,9 @@ const ST_K = { Hadir: 'H', Izin: 'I', Sakit: 'S', Alpa: 'A' };
 const D = t => S.db[t] || (S.db[t] = []);
 const siswaById = id => D('Siswa').find(s => s.id === id) || { id, nama: '(terhapus)' };
 const guruById = id => D('Guru').find(g => g.id === id) || { id, nama: '-' };
-const siswaAktif = () => D('Siswa').filter(s => s.status === 'Aktif').sort((a, b) => a.nama.localeCompare(b.nama));
+const siswaAktif = () => D('Siswa').filter(isAktif).sort((a, b) => a.nama.localeCompare(b.nama));
 const payOf = (sid, p) => D('SPP').find(x => x.siswaId === sid && x.periode === p);
-const billedIn = (s, p) => s.status === 'Aktif' && (s.tglMulai || '0000').slice(0, 7) <= p;
+const billedIn = (s, p) => isAktif(s) && (s.tglMulai || '0000').slice(0, 7) <= p;
 function unpaidFor(p) { return siswaAktif().filter(s => billedIn(s, p) && !payOf(s.id, p)); }
 function starTotal(sid, list = D('Bintang')) { return sum(list.filter(b => b.siswaId === sid), b => b.jumlah); }
 function absMonth(sid, p, list = D('Absensi')) {
@@ -772,7 +891,7 @@ function renderAdmin() {
   const unpaid = unpaidFor(thisPeriod()).length;
   $('#app').innerHTML = `<div class="shell">
     <aside class="side" id="side">
-      <div class="brand"><img src="${LOGO}" alt=""><div><b>${esc(S.settings.namaLembaga || 'JariMath Kids')}</b><span>Portal Admin</span></div></div>
+      <div class="brand"><img src="${LOGO}" alt=""><div><b>${esc(S.settings.namaLembaga || 'JariMath Kids')}</b><span class="role-tag">Portal Admin</span></div></div>
       ${NAV.map(([k, l, i]) => `<button class="nav-item ${k === 'menu' ? 'mobile-only' : ''} ${S.page === k ? 'on' : ''}" onclick="go('${k}')">${ic(i)}<span>${l}</span>${k === 'spp' && unpaid ? `<span class="cnt">${unpaid}</span>` : ''}</button>`).join('')}
       <div class="spacer"></div>
       <button class="nav-item" onclick="logout()">${ic('logout')}<span>Keluar</span></button>
@@ -843,12 +962,21 @@ function pgDashboard() {
   const ultah = aktif.filter(s => (s.tglLahir || '').slice(5, 7) === bulanLahir).sort((a, b) => a.tglLahir.slice(8).localeCompare(b.tglLahir.slice(8)));
   const latest = [...D('Nilai')].sort((a, b) => b.tanggal.localeCompare(a.tanggal)).slice(0, 5);
   return `
-  <div class="hero"><img src="${LOGO}" alt=""><div style="position:relative;z-index:1"><h2>Assalamu'alaikum 👋</h2><p>Selamat datang di sistem administrasi ${esc(S.settings.namaLembaga)}. Hari ini ${hari}, ${fmtDateLong(today)}.</p></div></div>
+  <div class="welcome"><div style="flex:1;min-width:220px"><h2>Assalamu'alaikum, ${esc(S.profile.nama)} 👋</h2><p class="muted">Berikut ringkasan kegiatan ${esc(S.settings.namaLembaga)} hari ini.</p></div><span class="date-chip">${hari}, ${fmtDate(today)}</span></div>
   <div class="grid g4">
-    <div class="stat bg-pink"><span class="lbl">Siswa aktif</span><span class="val num">${aktif.length}</span><span class="sub">${baru} siswa baru bulan ini</span></div>
-    <div class="stat bg-blue"><span class="lbl">Hadir hari ini</span><span class="val num">${absToday.filter(a => a.status === 'Hadir').length}<small style="font-size:16px"> / ${absToday.length}</small></span><span class="sub">${absToday.length ? 'sudah diabsen' : 'belum ada absensi'}</span></div>
-    <div class="stat bg-red" style="cursor:pointer" onclick="S.tab.spp='tagihan';S.f.sppFilter='belum';go('spp')"><span class="lbl" style="color:#B4282D">Belum bayar SPP</span><span class="val num" style="color:var(--red)">${unpaid.length}</span><span class="sub">${rp(sum(unpaid, s => sppNominal(s, S.settings)))} · ${fmtPeriod(p)}</span></div>
-    <div class="stat bg-green"><span class="lbl">SPP masuk bulan ini</span><span class="val num" style="font-size:22px">${rp(sum(paidRows, x => x.nominal))}</span><span class="sub">${paidRows.length} pembayaran</span></div>
+    ${kpi('users', 'var(--pink)', 'var(--pink-50)', 'Siswa aktif', aktif.length, `+${baru} siswa baru bulan ini`)}
+    ${kpi('teacher', 'var(--purple)', 'var(--purple-50)', 'Guru aktif', D('Guru').filter(g => g.status !== 'Nonaktif').length, `${D('AbsensiGuru').filter(a => a.tanggal === today && a.status === 'Hadir').length} hadir hari ini`)}
+    ${kpi('check', 'var(--green)', 'var(--green-50)', 'Hadir hari ini', `${absToday.filter(a => a.status === 'Hadir').length}<small style="font-size:15px"> / ${absToday.length}</small>`, `${jadwal.length} sesi les hari ini`)}
+    <div style="cursor:pointer" onclick="S.tab.spp='tagihan';S.f.sppFilter='belum';go('spp')">${kpi('wallet', 'var(--red)', 'var(--red-50)', 'Belum bayar SPP', `<span style="color:var(--red)">${unpaid.length}</span>`, `${rp(sum(unpaid, s => sppNominal(s, S.settings)))} · ${fmtPeriod(p)}`, 'alert')}</div>
+  </div>
+  <div class="grid g-chart">
+    <div class="card"><div class="card-head"><h3>Grafik kehadiran siswa</h3><div class="spacer"></div><button class="btn sm ghost" onclick="S.tab.abs='rekap';go('absensi')">Rekap</button></div>
+      ${barChart([...new Set(D('Absensi').map(a => a.tanggal))].sort().slice(-6).map(t => { const r = D('Absensi').filter(a => a.tanggal === t); const o = { label: fmtDate(t).split(' ').slice(0, 2).join(' ') }; ['Hadir', 'Izin', 'Sakit', 'Alpa'].forEach(k => o[k] = r.filter(x => x.status === k).length); return o; }))}
+    </div>
+    <div class="card"><div class="card-head"><h3>Rekap pembayaran</h3><div class="spacer"></div><button class="btn sm ghost" onclick="S.tab.spp='rekap';go('spp')">Detail</button></div>
+      ${(() => { const billed = aktif.filter(s => billedIn(s, p)); const lunas = billed.filter(s => payOf(s.id, p)).length; const blm = billed.length - lunas; return `<div class="donut-wrap" style="justify-content:center">${donut([{ v: lunas, color: '#18A058' }, { v: blm, color: '#E5484D' }], rp(sum(paidRows, x => x.nominal)), 'masuk ' + BULAN[+p.slice(5) - 1])}
+        <div style="flex:1;min-width:140px"><div class="li"><div class="meta"><b><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#18A058;margin-right:6px"></i>Lunas</b></div><b class="num">${lunas}</b></div><div class="li"><div class="meta"><b><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#E5484D;margin-right:6px"></i>Belum bayar</b></div><b class="num" style="color:var(--red)">${blm}</b></div><div class="li"><div class="meta"><span class="small muted">Total tagihan ${rp(sum(billed, s => sppNominal(s, S.settings)))}</span></div></div></div></div>`; })()}
+    </div>
   </div>
   <div class="grid g2">
     <div class="card"><div class="card-head"><h3>Belum bayar SPP — ${fmtPeriod(p)}</h3><div class="spacer"></div><button class="btn sm ghost" onclick="S.tab.spp='tagihan';S.f.sppFilter='belum';go('spp')">Lihat semua</button></div>
@@ -856,7 +984,7 @@ function pgDashboard() {
         <button class="icon-btn" title="Invoice" onclick="showInvoice('${s.id}','${p}')">${ic('file')}</button><button class="icon-btn" title="Kirim WA" onclick="waInvoice('${s.id}','${p}')">${ic('wa')}</button></div>`).join('') : `<div class="empty">🎉 Semua siswa sudah bayar SPP bulan ini</div>`}
     </div>
     <div class="card"><div class="card-head"><h3>Jadwal hari ini (${hari})</h3><div class="spacer"></div><button class="btn sm ghost" onclick="go('absensi')">Absen</button></div>
-      ${jadwal.length ? jadwal.map(j => `<div class="li"><div class="avatar" style="background:var(--green-50);color:var(--green)">${esc(j.sesi)}</div><div class="meta"><b>${esc(j.jamMulai)}–${esc(j.jamSelesai)} · ${esc(j.tipe)}</b><span class="small muted">${esc(guruById(j.guruId).nama)} · ${j.siswaIds ? j.siswaIds.split(',').map(i => esc(siswaById(i.trim()).panggilan || siswaById(i.trim()).nama)).join(', ') : '-'}</span></div></div>`).join('') : `<div class="empty">Tidak ada jadwal les hari ini</div>`}
+      ${jadwal.length ? sesiGroups(D('Jadwal'), hari).map(g => `<div class="li" style="align-items:flex-start"><div class="avatar" style="background:var(--green-50);color:var(--green)">${esc(g.sesi)}</div><div class="meta"><b>${esc(g.jamMulai)}–${esc(g.jamSelesai)} · ${g.ids.length} siswa</b><span class="small" style="display:block">${g.ids.length ? esc(g.ids.map(snm).join(', ')) : '<span style="color:var(--red)">Belum ada siswa</span>'}</span><span class="small muted">Guru: ${esc([...new Set(g.items.map(j => guruById(j.guruId).nama))].join(', '))}</span></div></div>`).join('') : `<div class="empty">Tidak ada jadwal les hari ini</div>`}
     </div>
   </div>
   <div class="grid g2">
@@ -882,7 +1010,7 @@ function pgSiswa() {
   const st = S.f.siswaSt || 'Aktif';
   return `<div class="card">
     <div class="card-head">
-      <div class="chips">${['Aktif', 'Cuti', 'Berhenti', 'Semua'].map(x => `<button class="chip ${st === x ? 'on' : ''}" onclick="setF('siswaSt','${x}')">${x} (${x === 'Semua' ? D('Siswa').length : D('Siswa').filter(s => s.status === x).length})</button>`).join('')}</div>
+      <div class="chips">${['Aktif', 'Cuti', 'Berhenti', 'Semua'].map(x => `<button class="chip ${st === x ? 'on' : ''}" onclick="setF('siswaSt','${x}')">${x} (${x === 'Semua' ? D('Siswa').length : D('Siswa').filter(s => String(s.status || 'Aktif').toLowerCase() === x.toLowerCase()).length})</button>`).join('')}</div>
       <div class="spacer"></div>
       <input class="input" style="max-width:220px" placeholder="Cari nama / ID…" value="${esc(S.f.q || '')}" oninput="S.f.q=this.value;$('#siswaList').innerHTML=siswaList()">
       <button class="btn" onclick="formSiswa()">${ic('plus')} Tambah Siswa</button>
@@ -892,7 +1020,7 @@ function pgSiswa() {
 }
 function siswaList() {
   const st = S.f.siswaSt || 'Aktif', q = (S.f.q || '').toLowerCase(), p = thisPeriod();
-  const rows = D('Siswa').filter(s => (st === 'Semua' || s.status === st) && (!q || (s.nama + s.id + s.panggilan).toLowerCase().includes(q))).sort((a, b) => a.id.localeCompare(b.id));
+  const rows = D('Siswa').filter(s => (st === 'Semua' || String(s.status || 'Aktif').toLowerCase() === st.toLowerCase()) && (!q || (s.nama + s.id + s.panggilan).toLowerCase().includes(q))).sort((a, b) => a.id.localeCompare(b.id));
   if (!rows.length) return '<div class="empty">Belum ada data siswa</div>';
   return `<table class="t"><thead><tr><th>ID</th><th>Nama</th><th>Level</th><th>Orang tua</th><th>Mulai</th><th>Status</th><th>SPP ${BULAN[+p.slice(5) - 1].slice(0, 3)}</th><th></th></tr></thead><tbody>
   ${rows.map(s => { const paid = payOf(s.id, p); const billed = billedIn(s, p); return `<tr class="${billed && !paid ? 'unpaid' : ''}">
@@ -940,22 +1068,26 @@ function waAkses(id) {
 }
 
 /* ================= JADWAL ================= */
+const snm = id => { const x = siswaById(id); return x.panggilan || x.nama; };
 function pgJadwal() {
   const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
   if (D('Jadwal').some(j => j.hari === 'Minggu')) days.push('Minggu');
   const colors = ['bg-pink', 'bg-yellow', 'bg-green', 'bg-blue', 'bg-purple', 'bg-orange', 'bg-pink'];
   const today = dayName(todayStr());
-  return `<div class="row"><p class="muted">Jadwal kelas reguler, privat & semiprivat. Klik sesi untuk mengubah.</p><div class="spacer"></div><button class="btn" onclick="formJadwal()">${ic('plus')} Tambah Jadwal</button></div>
-  <div class="days">${days.map((d, i) => { const js = D('Jadwal').filter(j => j.hari === d).sort((a, b) => (a.jamMulai || '').localeCompare(b.jamMulai || '')); return `<div class="day">
+  return `<div class="row"><p class="muted">Setiap sesi berisi daftar siswa & guru pengajarnya. Klik kotak guru untuk mengubah siswa di sesi itu.</p><div class="spacer"></div><button class="btn" onclick="formJadwal()">${ic('plus')} Tambah Jadwal</button></div>
+  <div class="days">${days.map((d, i) => { const gs = sesiGroups(D('Jadwal'), d); return `<div class="day">
     <h4 class="${colors[i]}">${d}${d === today ? '<span class="badge b-pink" style="margin-left:auto">Hari ini</span>' : ''}</h4>
-    ${js.length ? js.map(j => { const ids = j.siswaIds ? j.siswaIds.split(',').map(x => x.trim()).filter(Boolean) : []; return `<div class="sess" onclick="formJadwal('${j.id}')">
-      <div class="row" style="gap:6px"><span class="time">${ic('clock', '').replace('<svg', '<svg style="width:14px;height:14px;vertical-align:-2px"')} Sesi ${esc(j.sesi)} · ${esc(j.jamMulai)}–${esc(j.jamSelesai)}</span><div class="spacer"></div><span class="badge ${j.tipe === 'Privat' ? 'b-purple' : j.tipe === 'Semiprivat' ? 'b-blue' : 'b-yellow'}">${esc(j.tipe)}</span></div>
-      <div class="small" style="margin-top:4px"><b>${esc(guruById(j.guruId).nama)}</b> · ${ids.length} siswa</div>
-      <div class="small muted">${ids.map(x => esc(siswaById(x).panggilan || siswaById(x).nama)).join(', ') || '-'}</div></div>`; }).join('') : '<div class="small muted" style="padding:6px 4px">Tidak ada sesi</div>'}
+    ${gs.length ? gs.map(g => `<div style="margin-bottom:12px">
+      <div class="row" style="gap:6px;margin:2px 2px 6px"><span class="time" style="font-weight:800">${ic('clock').replace('<svg', '<svg style="width:14px;height:14px;vertical-align:-2px"')} Sesi ${esc(g.sesi)} · ${esc(g.jamMulai)}–${esc(g.jamSelesai)}</span><div class="spacer"></div><span class="badge b-gray">${g.ids.length} siswa</span></div>
+      ${g.items.map(j => { const ids = splitIds(j.siswaIds); return `<div class="sess" onclick="formJadwal('${j.id}')">
+        ${ids.length ? `<div class="chips" style="gap:4px">${ids.map(x => `<span class="badge b-pink" style="font-size:12.5px">${esc(snm(x))}</span>`).join('')}</div>` : `<div class="small" style="color:var(--red);font-weight:700">Belum ada siswa — klik untuk menambahkan</div>`}
+        <div class="row small muted" style="margin-top:6px;gap:6px">${ic('teacher').replace('<svg', '<svg style="width:14px;height:14px"')} ${esc(guruById(j.guruId).nama)}<div class="spacer"></div><span class="badge ${j.tipe === 'Privat' ? 'b-purple' : j.tipe === 'Semiprivat' ? 'b-blue' : 'b-yellow'}">${esc(j.tipe)}</span></div></div>`; }).join('')}
+      <button class="btn sm ghost block" onclick="formJadwal('', {hari:'${d}', sesi:'${esc(g.sesi)}', jamMulai:'${esc(g.jamMulai)}', jamSelesai:'${esc(g.jamSelesai)}'})">${ic('plus')} Guru lain di sesi ini</button>
+    </div>`).join('') : '<div class="small muted" style="padding:6px 4px">Tidak ada sesi</div>'}
   </div>`; }).join('')}</div>`;
 }
-function formJadwal(id) {
-  const j = id ? D('Jadwal').find(x => x.id === id) : { hari: 'Senin', sesi: '1', jamMulai: '14:00', jamSelesai: '15:00', tipe: 'Reguler', siswaIds: '' };
+function formJadwal(id, preset) {
+  const j = id ? D('Jadwal').find(x => x.id === id) : Object.assign({ hari: 'Senin', sesi: '1', jamMulai: '14:00', jamSelesai: '15:00', tipe: 'Reguler', siswaIds: '' }, preset || {});
   const sel = (j.siswaIds || '').split(',').map(x => x.trim());
   const opt = (arr, v) => arr.map(x => `<option ${String(v) === String(x) ? 'selected' : ''}>${x}</option>`).join('');
   modal(id ? 'Edit Jadwal' : 'Tambah Jadwal', `<form id="fJadwal" class="form-grid" onsubmit="event.preventDefault();saveJadwal('${id || ''}')">
@@ -965,9 +1097,11 @@ function formJadwal(id) {
     <div class="field"><label>Jam selesai</label><input class="input" type="time" name="jamSelesai" value="${esc(j.jamSelesai)}"></div>
     <div class="field"><label>Tipe kelas</label><select class="input" name="tipe">${opt(['Reguler', 'Privat', 'Semiprivat'], j.tipe)}</select></div>
     <div class="field"><label>Guru/tentor</label><select class="input" name="guruId">${D('Guru').filter(g => g.status !== 'Nonaktif').map(g => `<option value="${g.id}" ${g.id === j.guruId ? 'selected' : ''}>${esc(g.nama)}</option>`).join('')}</select></div>
-    <div class="field full"><label>Daftar siswa</label><div style="max-height:220px;overflow:auto;border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:4px">
-      ${siswaAktif().map(s => `<label class="row" style="gap:8px;font-weight:600;cursor:pointer"><input type="checkbox" name="sw" value="${s.id}" ${sel.includes(s.id) ? 'checked' : ''}> ${esc(s.nama)}</label>`).join('') || '<span class="muted">Belum ada siswa aktif</span>'}
-    </div></div>
+    <div class="field full"><label>Siswa di sesi ini <span id="swCnt" class="badge b-pink">${sel.filter(Boolean).length} dipilih</span></label>
+      <input class="input" placeholder="Cari nama siswa…" oninput="const q=this.value.toLowerCase();$$('#swBox label').forEach(l=>l.style.display=l.textContent.toLowerCase().includes(q)?'':'none')">
+      <div id="swBox" style="max-height:300px;overflow:auto;border:1.5px solid var(--line);border-radius:12px;padding:6px 10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:2px">
+      ${D('Siswa').filter(x => String(x.status || '').toLowerCase() !== 'berhenti').sort((a, b) => a.nama.localeCompare(b.nama)).map(x => `<label class="row" style="gap:8px;font-weight:600;cursor:pointer;padding:6px 4px;border-radius:8px;flex-wrap:nowrap"><input type="checkbox" name="sw" value="${x.id}" ${sel.includes(x.id) ? 'checked' : ''} onchange="$('#swCnt').textContent=$$('#swBox input:checked').length+' dipilih'" style="width:18px;height:18px"> <span>${esc(x.nama)} <span class="small muted">· L${esc(x.level || 1)}</span></span></label>`).join('') || '<span class="muted">Belum ada data siswa. Tambahkan dulu di menu Data Siswa.</span>'}
+      </div><span class="small muted">Centang semua siswa yang ikut sesi ini bersama guru di atas.</span></div>
     <div class="field full"><label>Catatan</label><input class="input" name="catatan" value="${esc(j.catatan || '')}"></div>
   </form>`, `${id ? `<button class="btn red" style="margin-right:auto" onclick="delJadwal('${id}')">${ic('trash')} Hapus</button>` : ''}<button class="btn ghost" onclick="closeModal()">Batal</button><button class="btn" onclick="$('#fJadwal').requestSubmit()">Simpan</button>`, true);
 }
@@ -975,7 +1109,7 @@ async function saveJadwal(id) {
   const f = formData($('#fJadwal')); delete f.sw;
   f.siswaIds = $$('#fJadwal input[name=sw]:checked').map(x => x.value).join(',');
   if (!D('Guru').length) return toast('Tambahkan data guru dulu (menu Kehadiran Guru → Data Guru)', true);
-  try { await saveRow('Jadwal', Object.assign(id ? { id } : {}, f)); closeModal(); toast('Jadwal tersimpan'); renderPage(); } catch (e) { toast(e.message, true); }
+  try { await saveRow('Jadwal', Object.assign(id ? { id } : {}, f)); closeModal(); toast(f.siswaIds ? `Jadwal tersimpan (${f.siswaIds.split(',').length} siswa)` : 'Jadwal tersimpan — belum ada siswa yang dicentang', !f.siswaIds); renderPage(); } catch (e) { toast(e.message, true); }
 }
 function delJadwal(id) { confirmBox('Hapus jadwal ini?', async () => { await removeRow('Jadwal', id); toast('Jadwal dihapus'); renderPage(); }); }
 
@@ -986,11 +1120,12 @@ function pgAbsensi() {
 }
 function absInput() {
   const date = S.f.absDate || todayStr(), hari = dayName(date);
-  const sesi = D('Jadwal').filter(j => j.hari === hari).sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+  const groups = sesiGroups(D('Jadwal'), hari);
   const js = S.f.absJadwal || 'all';
-  const jad = sesi.find(j => j.id === js);
+  const grp = groups.find(g => g.key === js);
+  const jad = grp ? (grp.items.find(j => splitIds(j.siswaIds).length) || grp.items[0]) : null;
   let list = siswaAktif();
-  if (jad) { const ids = jad.siswaIds.split(',').map(x => x.trim()); list = list.filter(s => ids.includes(s.id)); }
+  if (grp) list = list.filter(s => grp.ids.includes(s.id));
   const existing = D('Absensi').filter(a => a.tanggal === date);
   if (!S.absDraft || S.absDraft._date !== date) {
     S.absDraft = { _date: date };
@@ -1000,7 +1135,7 @@ function absInput() {
   return `<div class="card">
     <div class="card-head">
       <div class="field"><label>Tanggal</label><input class="input" type="date" value="${date}" onchange="S.f.absJadwal='all';setF('absDate',this.value)"></div>
-      <div class="field"><label>Sesi (${hari})</label><select class="input" onchange="setF('absJadwal',this.value)"><option value="all">Semua siswa aktif</option>${sesi.map(j => `<option value="${j.id}" ${js === j.id ? 'selected' : ''}>Sesi ${esc(j.sesi)} · ${esc(j.jamMulai)} · ${esc(guruById(j.guruId).nama)}</option>`).join('')}</select></div>
+      <div class="field"><label>Sesi (${hari})</label><select class="input" style="max-width:420px" onchange="setF('absJadwal',this.value)"><option value="all">Semua siswa aktif</option>${groups.map(g => `<option value="${g.key}" ${js === g.key ? 'selected' : ''}>Sesi ${esc(g.sesi)} · ${esc(g.jamMulai)}–${esc(g.jamSelesai)} · ${g.ids.length ? esc(namaList(g.ids, snm)) : '(belum ada siswa)'}</option>`).join('')}</select></div>
       <div class="field"><label>Pengajar</label><select class="input" id="absGuru">${D('Guru').map(g => `<option value="${g.id}" ${jad && jad.guruId === g.id ? 'selected' : ''}>${esc(g.nama)}</option>`).join('')}</select></div>
       <div class="spacer"></div>
       <button class="btn ghost" onclick="absAll()">✓ Semua Hadir</button>
@@ -1009,14 +1144,14 @@ function absInput() {
     <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th><th>Status</th><th>Keterangan</th><th></th></tr></thead><tbody>
       ${list.map(s => { const d = S.absDraft[s.id] || {}; return `<tr><td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.id)} · Level ${esc(s.level)}</div></td>
       <td><div class="seg">${Object.entries(ST).map(([k, v]) => `<button class="${k} ${d.status === v ? 'on' : ''}" title="${v}" onclick="absSet('${s.id}','${v}')">${k}</button>`).join('')}</div></td>
-      <td><input class="input" style="min-width:150px;padding:7px 10px" placeholder="opsional" value="${esc(d.catatan || '')}" onchange="absNote('${s.id}',this.value)"></td><td>${d.id ? `<button class="icon-btn" title="Hapus absensi ini" onclick="delAbs('${d.id}')">${ic('trash')}</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="4"><div class="empty">Tidak ada siswa</div></td></tr>'}
+      <td><input class="input" style="min-width:150px;padding:7px 10px" placeholder="opsional" value="${esc(d.catatan || '')}" onchange="absNote('${s.id}',this.value)"></td><td>${d.id ? `<button class="icon-btn" title="Hapus absensi ini" onclick="delAbs('${d.id}')">${ic('trash')}</button>` : ''}</td></tr>`; }).join('') || `<tr><td colspan="4"><div class="empty">${grp ? 'Belum ada siswa di jadwal sesi ini. <a href="#" onclick="go(\'jadwal\');return false">Tambahkan siswa di menu Jadwal Les →</a>' : 'Tidak ada siswa aktif'}</div></td></tr>`}
     </tbody></table></div>
     <div class="row" style="margin-top:14px"><span class="small muted">H = Hadir · I = Izin · S = Sakit · A = Tanpa keterangan</span><div class="spacer"></div><button class="btn" onclick="absSave()">Simpan Absensi</button></div>
   </div>`;
 }
 function absSet(id, v) { S.absDraft._dirty = true; S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { status: v }); renderPage(); }
 function absNote(id, v) { S.absDraft._dirty = true; S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { catatan: v }); }
-function absAll() { const sesi = D('Jadwal').find(j => j.id === S.f.absJadwal); let list = siswaAktif(); if (sesi) { const ids = sesi.siswaIds.split(','); list = list.filter(s => ids.includes(s.id)); } list.forEach(s => { if (!(S.absDraft[s.id] || {}).status) absSetQuiet(s.id, 'Hadir'); }); renderPage(); }
+function absAll() { const date = S.f.absDate || todayStr(); const grp = sesiGroups(D('Jadwal'), dayName(date)).find(g => g.key === S.f.absJadwal); let list = siswaAktif(); if (grp) list = list.filter(s => grp.ids.includes(s.id)); list.forEach(s => { if (!(S.absDraft[s.id] || {}).status) absSetQuiet(s.id, 'Hadir'); }); renderPage(); }
 function absSetQuiet(id, v) { S.absDraft._dirty = true; S.absDraft[id] = Object.assign(S.absDraft[id] || {}, { status: v }); }
 async function absSave() {
   const date = S.f.absDate || todayStr(), guruId = ($('#absGuru') || {}).value || '';
@@ -1027,7 +1162,7 @@ async function absSave() {
 }
 function absRekap() {
   const p = S.f.absP || thisPeriod();
-  const rows = D('Siswa').filter(s => s.status === 'Aktif' || D('Absensi').some(a => a.siswaId === s.id && a.tanggal.startsWith(p))).sort((a, b) => a.nama.localeCompare(b.nama)).map(s => ({ s, c: absMonth(s.id, p) }));
+  const rows = D('Siswa').filter(s => isAktif(s) || D('Absensi').some(a => a.siswaId === s.id && a.tanggal.startsWith(p))).sort((a, b) => a.nama.localeCompare(b.nama)).map(s => ({ s, c: absMonth(s.id, p) }));
   return `<div class="card"><div class="card-head"><select class="input" style="max-width:200px" onchange="setF('absP',this.value)">${monthOptions(p)}</select><div class="spacer"></div><button class="btn ghost" onclick="csvAbs('${p}')">${ic('download')} Unduh Excel (CSV)</button></div>
   <div class="table-wrap"><table class="t"><thead><tr><th>Siswa</th><th class="c">Hadir</th><th class="c">Izin</th><th class="c">Sakit</th><th class="c">Alpa</th><th class="c">Pertemuan</th><th class="c">% Hadir</th></tr></thead><tbody>
   ${rows.map(({ s, c }) => `<tr style="cursor:pointer" onclick="absDetail('${s.id}','${p}')"><td><b>${esc(s.nama)}</b><div class="small muted">${esc(s.id)}</div></td><td class="c num cell-ok">${c.Hadir}</td><td class="c num">${c.Izin}</td><td class="c num">${c.Sakit}</td><td class="c num ${c.Alpa ? 'cell-no' : ''}">${c.Alpa}</td><td class="c num"><b>${c.total}</b></td><td class="c num">${c.total ? Math.round(c.Hadir / c.total * 100) + '%' : '-'}</td></tr>`).join('') || '<tr><td colspan="7"><div class="empty">Belum ada data</div></td></tr>'}
@@ -1127,7 +1262,7 @@ function delBayar(id) { confirmBox('Batalkan/hapus catatan pembayaran ini? Statu
 function sppRekap() {
   const y = S.f.sppY || thisPeriod().slice(0, 4), cur = thisPeriod();
   const months = Array.from({ length: 12 }, (_, i) => `${y}-${pad(i + 1)}`);
-  const list = D('Siswa').filter(s => s.status === 'Aktif' || D('SPP').some(x => x.siswaId === s.id && x.periode.startsWith(y))).sort((a, b) => a.nama.localeCompare(b.nama));
+  const list = D('Siswa').filter(s => isAktif(s) || D('SPP').some(x => x.siswaId === s.id && x.periode.startsWith(y))).sort((a, b) => a.nama.localeCompare(b.nama));
   let grand = 0, grandN = 0, paidTot = 0;
   const body = list.map(s => {
     let n = 0, tot = 0;
@@ -1149,7 +1284,7 @@ function sppRekap() {
 function csvSpp(y) {
   const months = Array.from({ length: 12 }, (_, i) => `${y}-${pad(i + 1)}`), cur = thisPeriod();
   const rows = [['ID', 'Nama', ...months.map(m => fmtPeriod(m)), 'Bulan Tunggakan', 'Total Tunggakan']];
-  D('Siswa').filter(s => s.status === 'Aktif').forEach(s => {
+  D('Siswa').filter(isAktif).forEach(s => {
     let n = 0, t = 0;
     const c = months.map(m => { const x = payOf(s.id, m); if (x) return 'LUNAS ' + x.nominal; if (billedIn(s, m) && m <= cur) { n++; t += sppNominal(s, S.settings); return 'BELUM'; } return '-'; });
     rows.push([s.id, s.nama, ...c, n, t]);
@@ -1604,55 +1739,80 @@ const stCls = { Hadir: 'b-green', Izin: 'b-blue', Sakit: 'b-yellow', Alpa: 'b-re
 /* =========================================================
    PORTAL GURU
    ========================================================= */
+/* sesi milik guru ini, berisi SEMUA siswa yang dijadwalkan di sesi & jam yang sama (dari jadwal semua guru) */
+function gSesi(hari) {
+  const all = sesiGroups(S.g.JadwalAll || S.g.Jadwal, hari);
+  return all.filter(g => g.items.some(j => j.guruId === S.g.guru.id));
+}
 function gSiswaList(scope, date) {
   const all = S.g.siswa;
   if (scope === 'all') return all;
   if (scope === 'mine' || !scope) return all.filter(s => s.diajar);
-  const j = S.g.Jadwal.find(x => x.id === scope);
-  if (!j) return all.filter(s => s.diajar);
-  const ids = j.siswaIds.split(',').map(x => x.trim());
-  return all.filter(s => ids.includes(s.id));
+  const g = gSesi(dayName(date || todayStr())).find(x => x.key === scope);
+  if (!g) return all.filter(s => s.diajar);
+  return all.filter(s => g.ids.includes(s.id));
 }
 function gScopeSelect(key, date) {
-  const hari = dayName(date), cur = S.f[key] || (S.g.siswa.some(s => s.diajar) ? 'mine' : 'all');
-  const ses = S.g.Jadwal.filter(j => j.hari === hari).sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+  const ses = gSesi(dayName(date));
+  const cur = S.f[key] || (ses[0] ? ses[0].key : S.g.siswa.some(s => s.diajar) ? 'mine' : 'all');
   return `<select class="input" onchange="S.f['${key}']=this.value;renderGuru()">
-    ${ses.map(j => `<option value="${j.id}" ${cur === j.id ? 'selected' : ''}>Sesi ${esc(j.sesi)} · ${esc(j.jamMulai)}–${esc(j.jamSelesai)} (${esc(j.tipe)})</option>`).join('')}
+    ${ses.map(g => `<option value="${g.key}" ${cur === g.key ? 'selected' : ''}>Sesi ${esc(g.sesi)} · ${esc(g.jamMulai)}–${esc(g.jamSelesai)} · ${g.ids.length ? esc(namaList(g.ids, sNama)) : '(belum ada siswa)'}</option>`).join('')}
     <option value="mine" ${cur === 'mine' ? 'selected' : ''}>Semua siswa yang saya ajar</option>
     <option value="all" ${cur === 'all' ? 'selected' : ''}>Semua siswa aktif</option></select>`;
 }
-function renderGuru() {
-  const g = S.g.guru, t = S.tab.gp || 'absen', today = todayStr(), hari = dayName(today);
+function gScopeDefault(key, date) { const ses = gSesi(dayName(date)); return S.f[key] || (ses[0] ? ses[0].key : S.g.siswa.some(s => s.diajar) ? 'mine' : 'all'); }
+const gEmpty = scope => `<div class="empty">${String(scope).startsWith('G|') ? 'Belum ada siswa di jadwal sesi ini.<br><span class="small">Admin bisa menambahkan siswa di menu <b>Jadwal Les</b>. Sementara itu pilih <b>"Semua siswa aktif"</b>.</span>' : 'Tidak ada siswa. Pilih "Semua siswa aktif".'}</div>`;
+const G_NAV = [['dash', 'Dashboard', 'grid'], ['absen', 'Absensi Siswa', 'check'], ['harian', 'Perkembangan Harian', 'note'], ['siswa', 'Siswa Saya', 'users'], ['riwayat', 'Riwayat Absen Saya', 'clock']];
+function gAbsenBox(me) {
+  if (!me || !me.status) return `<p class="small" style="margin-bottom:10px">Anda belum absen hari ini.</p><div class="row"><button class="btn green" onclick="gAbsen('masuk')">${ic('clock')} Absen Masuk</button><button class="btn ghost sm" onclick="gAbsen('Izin')">Izin</button><button class="btn ghost sm" onclick="gAbsen('Sakit')">Sakit</button></div>`;
+  if (me.status === 'Hadir' && !me.jamKeluar) return `<p style="margin-bottom:10px"><span class="badge b-green">Hadir</span> Masuk pukul <b>${esc(me.jamMasuk)}</b></p><button class="btn" onclick="gAbsen('pulang')">${ic('logout')} Absen Pulang</button>`;
+  if (me.status === 'Hadir') return `<p><span class="badge b-green">✓ Selesai</span> Masuk <b>${esc(me.jamMasuk)}</b> · Pulang <b>${esc(me.jamKeluar)}</b> · <b>${esc(me.jamMengajar)} jam</b></p><button class="btn sm ghost" style="margin-top:8px" onclick="gAbsen('pulang')">Perbarui jam pulang</button>`;
+  return `<p><span class="badge ${stCls[me.status] || 'b-gray'}">${esc(me.status)}</span> hari ini</p><button class="btn sm ghost" style="margin-top:8px" onclick="gAbsen('masuk')">Ubah jadi Hadir (absen masuk)</button>`;
+}
+const sNama = id => { const x = S.g.siswa.find(s => s.id === id.trim()) || {}; return x.panggilan || x.nama || id; };
+function gDash() {
+  const g = S.g.guru, today = todayStr(), hari = dayName(today);
   const me = S.g.AbsensiGuru.find(a => a.tanggal === today);
-  const jHari = S.g.Jadwal.filter(j => j.hari === hari).sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
-  let absenBox;
-  if (!me || !me.status) absenBox = `<p class="small" style="margin-bottom:10px">Anda belum absen hari ini.</p><div class="row"><button class="btn green" onclick="gAbsen('masuk')">${ic('clock')} Absen Masuk</button><button class="btn ghost sm" onclick="gAbsen('Izin')">Izin</button><button class="btn ghost sm" onclick="gAbsen('Sakit')">Sakit</button></div>`;
-  else if (me.status === 'Hadir' && !me.jamKeluar) absenBox = `<p style="margin-bottom:10px"><span class="badge b-green">Hadir</span> Masuk pukul <b>${esc(me.jamMasuk)}</b></p><button class="btn" onclick="gAbsen('pulang')">${ic('logout')} Absen Pulang</button>`;
-  else if (me.status === 'Hadir') absenBox = `<p><span class="badge b-green">✓ Selesai</span> Masuk <b>${esc(me.jamMasuk)}</b> · Pulang <b>${esc(me.jamKeluar)}</b> · <b>${esc(me.jamMengajar)} jam</b></p><button class="btn sm ghost" style="margin-top:8px" onclick="gAbsen('pulang')">Perbarui jam pulang</button>`;
-  else absenBox = `<p><span class="badge ${stCls[me.status] || 'b-gray'}">${esc(me.status)}</span> hari ini</p><button class="btn sm ghost" style="margin-top:8px" onclick="gAbsen('masuk')">Ubah jadi Hadir (absen masuk)</button>`;
-
-  let body = '';
-  if (t === 'absen') body = gTabAbsen();
-  else if (t === 'harian') body = gTabHarian();
-  else if (t === 'siswa') body = gTabSiswa();
-  else body = gTabRiwayat();
-
-  $('#app').innerHTML = kidTop('Portal Guru') + `<div class="kid-wrap">
-    <div class="hero"><div class="avatar" style="width:60px;height:60px;font-size:22px;position:relative;z-index:1">${initials(g.nama)}</div><div style="position:relative;z-index:1;min-width:0"><h2>${esc(g.nama)}</h2><p>${esc(g.id)} · WA ${esc(g.wa || '-')}</p><p class="small">${hari}, ${fmtDateLong(today)}</p></div></div>
-    <div class="grid g2">
-      <div class="card"><h3>Absen saya hari ini</h3>${absenBox}</div>
-      <div class="card"><h3>Jadwal mengajar hari ini</h3>${jHari.map(j => `<div class="li"><div class="avatar" style="background:var(--green-50);color:var(--green)">${esc(j.sesi)}</div><div class="meta"><b>${esc(j.jamMulai)}–${esc(j.jamSelesai)} · ${esc(j.tipe)}</b><span class="small muted">${j.siswaIds.split(',').filter(Boolean).map(id => esc((S.g.siswa.find(s => s.id === id.trim()) || {}).panggilan || (S.g.siswa.find(s => s.id === id.trim()) || {}).nama || id)).join(', ')}</span></div></div>`).join('') || '<div class="empty" style="padding:12px">Tidak ada jadwal hari ini</div>'}</div>
-    </div>
-    <div class="row"><div class="tabs">${[['absen', 'Absensi Siswa'], ['harian', 'Perkembangan Harian'], ['siswa', 'Siswa Saya'], ['riwayat', 'Riwayat Absen Saya']].map(([k, l]) => `<button class="${t === k ? 'on' : ''}" onclick="gTab('${k}')">${l}</button>`).join('')}</div></div>
-    ${body}
+  const jHari = gSesi(hari);
+  const mine = S.g.siswa.filter(s => s.diajar);
+  const idsHari = [...new Set(jHari.flatMap(g => g.ids))];
+  const absHari = S.g.Absensi.filter(a => a.tanggal === today && (idsHari.includes(a.siswaId) || a.guruId === g.id));
+  const notesHari = S.g.Perkembangan.filter(p => p.tanggal === today && p.guruId === g.id);
+  const tugas = [
+    ['Absen masuk', !!(me && me.status)],
+    [`Isi absensi siswa${idsHari.length ? ` (${absHari.length}/${idsHari.length})` : ''}`, idsHari.length ? idsHari.every(id => S.g.Absensi.some(a => a.tanggal === today && a.siswaId === id)) : absHari.length > 0],
+    [`Catat perkembangan belajar${idsHari.length ? ` (${notesHari.length}/${idsHari.length})` : ''}`, idsHari.length ? idsHari.every(id => notesHari.some(n => n.siswaId === id)) : notesHari.length > 0],
+    ['Absen pulang', !!(me && me.jamKeluar) || !!(me && me.status && me.status !== 'Hadir')]
+  ];
+  return `<div class="welcome"><div style="flex:1;min-width:220px"><h2>Halo, ${esc(g.nama)} 👋</h2><p class="muted">Semangat mendampingi anak-anak belajar hari ini.</p></div><span class="date-chip">${hari}, ${fmtDate(today)}</span></div>
+  <div class="grid g4">
+    ${kpi('users', 'var(--pink)', 'var(--pink-50)', 'Siswa yang diajar', mine.length, `${S.g.siswa.length} siswa aktif total`)}
+    ${kpi('cal', 'var(--purple)', 'var(--purple-50)', 'Sesi hari ini', jHari.length, jHari.map(j => j.jamMulai).join(' · ') || 'tidak ada jadwal')}
+    ${kpi('check', 'var(--green)', 'var(--green-50)', 'Absensi hari ini', `${absHari.filter(a => a.status === 'Hadir').length}/${idsHari.length || absHari.length}`, 'siswa hadir')}
+    ${kpi('note', 'var(--orange)', 'var(--orange-50)', 'Catatan hari ini', notesHari.length, 'perkembangan ditulis')}
+  </div>
+  <div class="grid g3">
+    <div class="card"><h3>Absen saya hari ini</h3>${gAbsenBox(me)}</div>
+    <div class="card"><h3>Jadwal mengajar hari ini</h3>${jHari.map(g => `<div class="li" style="align-items:flex-start"><div class="avatar" style="background:var(--green-50);color:var(--green)">${esc(g.sesi)}</div><div class="meta"><b>${esc(g.jamMulai)}–${esc(g.jamSelesai)} · ${g.ids.length} siswa</b><span class="small" style="display:block">${g.ids.length ? esc(g.ids.map(sNama).join(', ')) : '<span style="color:var(--red)">Belum ada siswa di jadwal</span>'}</span></div></div>`).join('') || '<div class="empty" style="padding:12px">Tidak ada jadwal hari ini</div>'}
+      <button class="btn sm block" style="margin-top:10px" onclick="gTab('absen')">Ke halaman absensi →</button></div>
+    <div class="card"><h3>Tugas hari ini</h3>${tugas.map(([l, d]) => `<div class="task ${d ? 'done' : ''}"><div class="box">${d ? '✓' : ''}</div><span>${l}</span></div>`).join('')}
+      <button class="btn sm block" style="margin-top:10px" onclick="gTab('harian')">Tulis perkembangan →</button></div>
   </div>`;
 }
+function renderGuru() {
+  const g = S.g.guru, t = S.tab.gp || 'dash';
+  setRoleTheme('guru');
+  const body = t === 'dash' ? gDash() : t === 'absen' ? gTabAbsen() : t === 'harian' ? gTabHarian() : t === 'siswa' ? gTabSiswa() : gTabRiwayat();
+  const title = (G_NAV.find(n => n[0] === t) || G_NAV[0])[1];
+  $('#app').innerHTML = shellHtml({ nav: G_NAV, cur: t, goFn: 'gTab', roleName: 'Guru', title, name: g.nama, onRefresh: 'gReload()', body });
+}
+async function gReload() { if (S.gaDraft) S.gaDraft._dirty = false; if (await gRefresh()) { renderGuru(); toast('Data terbaru dimuat'); } }
 let gLoad = Date.now();
 async function gRefresh() {
   try { const r = await call('guruData', {}, { silent: true }); S.g = r.data; gLoad = Date.now(); if (S.gaDraft && !S.gaDraft._dirty) S.gaDraft = null; return true; } catch (e) { return false; }
 }
 function gTab(k) {
-  S.tab.gp = k; renderGuru();
+  S.tab.gp = k; renderGuru(); window.scrollTo(0, 0);
   if (Date.now() - gLoad > 15000) gRefresh().then(ok => { const a = document.activeElement; if (ok && S.tab.gp === k && !$('#modal') && !(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName))) renderGuru(); });
 }
 async function gAbsen(mode) {
@@ -1661,20 +1821,20 @@ async function gAbsen(mode) {
 }
 function gTabAbsen() {
   const date = S.f.gaDate || todayStr();
-  const list = gSiswaList(S.f.gaScope || (S.g.siswa.some(s => s.diajar) ? 'mine' : 'all'), date);
+  const scopeA = gScopeDefault('gaScope', date); const list = gSiswaList(scopeA, date);
   if (!S.gaDraft || S.gaDraft._date !== date) { S.gaDraft = { _date: date }; S.g.Absensi.filter(a => a.tanggal === date).forEach(a => S.gaDraft[a.siswaId] = { status: a.status, catatan: a.catatan }); }
   return `<div class="card"><div class="card-head">
     <div class="field"><label>Tanggal</label><input class="input" type="date" value="${date}" max="${todayStr()}" onchange="S.f.gaDate=this.value;renderGuru()"></div>
     <div class="field" style="flex:1;min-width:200px"><label>Kelas / sesi</label>${gScopeSelect('gaScope', date)}</div></div>
     ${list.map(s => { const d = S.gaDraft[s.id] || {}; return `<div class="li" style="flex-wrap:wrap"><div class="meta" style="min-width:150px"><b>${esc(s.nama)}</b><span class="small muted">${esc(s.id)} · Level ${esc(s.level)}</span></div>
       <div class="seg">${Object.entries(ST_ALL).map(([k, v]) => `<button class="${k} ${d.status === v ? 'on' : ''}" onclick="gaSet('${s.id}','${v}')">${k}</button>`).join('')}</div>
-      <input class="input" style="flex-basis:100%;padding:7px 10px" placeholder="Keterangan (opsional)" value="${esc(d.catatan || '')}" onchange="S.gaDraft._dirty=true;(S.gaDraft['${s.id}']=S.gaDraft['${s.id}']||{}).catatan=this.value"></div>`; }).join('') || '<div class="empty">Tidak ada siswa. Pilih "Semua siswa aktif".</div>'}
+      <input class="input" style="flex-basis:100%;padding:7px 10px" placeholder="Keterangan (opsional)" value="${esc(d.catatan || '')}" onchange="S.gaDraft._dirty=true;(S.gaDraft['${s.id}']=S.gaDraft['${s.id}']||{}).catatan=this.value"></div>`; }).join('') || gEmpty(scopeA)}
     <div class="row" style="margin-top:14px"><button class="btn ghost" onclick="gaAll()">✓ Semua Hadir</button><div class="spacer"></div><button class="btn" onclick="gaSave()">Simpan Absensi</button></div>
     <p class="small muted" style="margin-top:8px">H = Hadir · I = Izin · S = Sakit · A = Tanpa keterangan</p></div>`;
 }
 const ST_ALL = { H: 'Hadir', I: 'Izin', S: 'Sakit', A: 'Alpa' };
 function gaSet(id, v) { S.gaDraft._dirty = true; S.gaDraft[id] = Object.assign(S.gaDraft[id] || {}, { status: v }); renderGuru(); }
-function gaAll() { gSiswaList(S.f.gaScope || (S.g.siswa.some(s => s.diajar) ? 'mine' : 'all')).forEach(s => { if (!(S.gaDraft[s.id] || {}).status) S.gaDraft[s.id] = Object.assign(S.gaDraft[s.id] || {}, { status: 'Hadir' }); }); renderGuru(); }
+function gaAll() { const d = S.f.gaDate || todayStr(); gSiswaList(gScopeDefault('gaScope', d), d).forEach(s => { if (!(S.gaDraft[s.id] || {}).status) S.gaDraft[s.id] = Object.assign(S.gaDraft[s.id] || {}, { status: 'Hadir' }); }); renderGuru(); }
 async function gaSave() {
   const date = S.f.gaDate || todayStr();
   const rows = Object.entries(S.gaDraft).filter(([k, v]) => k !== '_date' && v.status).map(([sid, v]) => ({ tanggal: date, siswaId: sid, status: v.status, catatan: v.catatan || '' }));
@@ -1687,7 +1847,7 @@ async function gaSave() {
 }
 function gTabHarian() {
   const date = S.f.gpDate || todayStr();
-  const list = gSiswaList(S.f.gpScope || (S.g.siswa.some(s => s.diajar) ? 'mine' : 'all'), date);
+  const scopeP = gScopeDefault('gpScope', date); const list = gSiswaList(scopeP, date);
   const mine = S.g.Perkembangan.filter(p => p.guruId === S.g.guru.id);
   const recent = [...S.g.Perkembangan].sort((a, b) => b.tanggal.localeCompare(a.tanggal)).slice(0, 10);
   const nm = id => (S.g.siswa.find(s => s.id === id) || {}).nama || id;
@@ -1698,7 +1858,7 @@ function gTabHarian() {
     <form id="fGP" onsubmit="event.preventDefault();gpSave()">
     ${list.map(s => { const ex = mine.find(p => p.tanggal === date && p.siswaId === s.id) || {}; const L = lvOf(s.level); return `<div style="border:1.5px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px" data-sid="${s.id}" data-id="${esc(ex.id || '')}">
       <div class="row" style="margin-bottom:8px"><b style="flex:1">${esc(s.nama)}</b>${lvBadge(s.level)}<select class="input" name="jurus" style="width:auto;padding:6px 10px"><option value="">Jurus…</option>${L.jurusList.map(j => `<option ${ex.jurus === j ? 'selected' : ''}>${esc(j)}</option>`).join('')}</select></div>
-      <textarea class="input" name="deskripsi" style="min-height:64px" placeholder="contoh: Sudah lancar jurus 1, masih perlu latihan menutup jari…">${esc(ex.deskripsi || '')}</textarea></div>`; }).join('') || '<div class="empty">Tidak ada siswa. Pilih "Semua siswa aktif".</div>'}
+      <textarea class="input" name="deskripsi" style="min-height:64px" placeholder="contoh: Sudah lancar jurus 1, masih perlu latihan menutup jari…">${esc(ex.deskripsi || '')}</textarea></div>`; }).join('') || gEmpty(scopeP)}
     ${list.length ? '<div class="row"><div class="spacer"></div><button class="btn">Simpan Perkembangan</button></div>' : ''}</form></div>
   <div class="card"><h3>Catatan terbaru</h3>${recent.map(p => `<div class="li" style="align-items:flex-start"><div class="meta"><b>${esc(nm(p.siswaId))} ${p.jurus ? `<span class="badge b-pink">${esc(p.jurus)}</span>` : ''}</b><div style="white-space:pre-line">${esc(p.deskripsi)}</div><span class="small muted">${fmtDate(p.tanggal)}${p.guruId !== S.g.guru.id ? ' · guru lain' : ''}</span></div>${p.guruId === S.g.guru.id ? `<button class="icon-btn" onclick="gpDel('${p.id}')">${ic('trash')}</button>` : ''}</div>`).join('') || '<div class="empty">Belum ada catatan</div>'}</div>`;
 }
@@ -1785,7 +1945,7 @@ async function finishQuiz() {
     <p style="font-size:18px;margin:8px 0 6px">${msg}</p>
     ${r.bintang ? `<p class="badge b-yellow" style="font-size:14px">+${r.bintang} bintang masuk ke tabungan!</p>` : '<p class="small muted">Dapatkan skor 60 ke atas untuk mendapat bintang.</p>'}
     ${r.gagal ? '<p class="small" style="color:var(--red)">Hasil belum tersimpan (koneksi). Coba lagi nanti.</p>' : ''}
-    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn ghost" onclick="S.tab.ortu='latihan';renderOrtu()">Kembali</button><button class="btn" onclick="startQuiz(${lv},'${esc(jr)}')">Ulangi</button></div>
+    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn ghost" onclick="oTab('latihan')">Kembali</button><button class="btn" onclick="startQuiz(${lv},'${esc(jr)}')">Ulangi</button></div>
   </div></div>`;
 }
 
@@ -1806,16 +1966,27 @@ function renderOrtu() {
   const harianItem = h => `<div class="li" style="align-items:flex-start"><div class="avatar" style="background:var(--purple-50)">📝</div><div class="meta"><b>${dayName(h.tanggal)}, ${fmtDate(h.tanggal)} ${h.jurus ? `<span class="badge b-pink">${esc(h.jurus)}</span>` : ''}</b><div style="white-space:pre-line">${esc(h.deskripsi)}</div><span class="small muted">${esc(h.guruNama || '')}</span></div></div>`;
   let body = '';
   if (t === 'ringkas') {
-    body = `${unpaid.length ? `<div class="card" style="background:var(--red-50);border-color:#F8CACA"><div class="row"><div style="font-size:30px">⚠️</div><div style="flex:1;min-width:200px"><h3 style="color:#B4282D;margin:0">Ada tagihan SPP belum dibayar</h3><p class="small">${unpaid.map(fmtPeriod).join(', ')} · total <b>${rp(unpaid.length * sppNominal(s, st))}</b></p></div><button class="btn red" onclick="S.tab.ortu='spp';renderOrtu()">Lihat Invoice</button></div></div>`
+    body = `<div class="welcome"><div style="flex:1;min-width:220px"><h2>Selamat datang, ${esc(s.ortu || 'Bapak/Ibu')} 👋</h2><p class="muted">Berikut ringkasan perkembangan ${esc(s.panggilan || s.nama)}.</p></div><span class="date-chip">${dayName(todayStr())}, ${fmtDate(todayStr())}</span></div>
+    ${unpaid.length ? `<div class="card" style="background:var(--red-50);border-color:#F8CACA"><div class="row"><div style="font-size:30px">⚠️</div><div style="flex:1;min-width:200px"><h3 style="color:#B4282D;margin:0">Ada tagihan SPP belum dibayar</h3><p class="small">${unpaid.map(fmtPeriod).join(', ')} · total <b>${rp(unpaid.length * sppNominal(s, st))}</b></p></div><button class="btn red" onclick="oTab('spp')">Lihat Invoice</button></div></div>`
       : `<div class="card" style="background:var(--green-50);border-color:#BFEBD2"><div class="row"><div style="font-size:30px">✅</div><div><h3 style="color:#0E7A41;margin:0">SPP ${fmtPeriod(p)} sudah lunas</h3><p class="small">Terima kasih atas pembayarannya 🙏</p></div></div></div>`}
     <div class="grid g4">
-      <div class="stat bg-blue"><span class="lbl">Hadir ${BULAN[+p.slice(5) - 1]}</span><span class="val num">${ab.filter(a => a.status === 'Hadir').length}/${ab.length}</span><span class="sub">pertemuan</span></div>
-      <div class="stat" style="background:${L.bg}"><span class="lbl">Level ${esc(s.level)}</span><span class="val" style="font-size:19px">${esc(L.nama)}</span><span class="sub">${esc(L.desc)}</span></div>
-      <div class="stat bg-yellow"><span class="lbl">Tabungan bintang</span><span class="val num">⭐ ${stars}</span><span class="sub">bisa ditukar hadiah</span></div>
-      <div class="stat bg-green" style="cursor:pointer" onclick="S.tab.ortu='latihan';renderOrtu()"><span class="lbl">Latihan soal</span><span class="val num">${S.me.Nilai.length}</span><span class="sub">Ayo latihan →</span></div>
+      ${kpi('calc', L.color, L.bg, 'Level ' + esc(s.level), `<span style="font-size:20px">${esc(L.nama)}</span>`, esc(L.desc))}
+      ${kpi('check', 'var(--blue)', 'var(--blue-50)', 'Hadir ' + BULAN[+p.slice(5) - 1], `${ab.filter(a => a.status === 'Hadir').length}/${ab.length}`, 'pertemuan')}
+      ${kpi('star', '#E0A800', 'var(--yellow-50)', 'Total bintang', '⭐ ' + stars, 'bisa ditukar hadiah')}
+      <div style="cursor:pointer" onclick="oTab('latihan')">${kpi('book', 'var(--pink)', 'var(--pink-50)', 'Latihan soal', S.me.Nilai.length, 'Ayo latihan →')}</div>
+    </div>
+    <div class="grid g-chart">
+      <div class="card"><div class="card-head"><h3>Ringkasan kehadiran</h3><div class="spacer"></div><button class="btn sm ghost" onclick="oTab('absen')">Detail</button></div>
+        ${barChart([3, 2, 1, 0].map(n => addMonths(p, -n)).map(m => { const r = S.me.Absensi.filter(a => a.tanggal.startsWith(m)); const o = { label: BULAN[+m.slice(5) - 1].slice(0, 3) }; ['Hadir', 'Izin', 'Sakit', 'Alpa'].forEach(k => o[k] = r.filter(x => x.status === k).length); return o; }).filter((o, i, arr) => i === arr.length - 1 || o.Hadir + o.Izin + o.Sakit + o.Alpa))}
+      </div>
+      <div class="card"><h3>Informasi penting</h3>
+        ${(() => { const hari = dayName(todayStr()); const jn = S.me.Jadwal.find(j => j.hari === hari); return `<div class="li"><div class="avatar" style="background:var(--green-50)">📅</div><div class="meta"><b>${jn ? `Les hari ini ${esc(jn.jamMulai)}–${esc(jn.jamSelesai)}` : 'Tidak ada les hari ini'}</b><span class="small muted">${S.me.Jadwal.map(j => j.hari + ' ' + j.jamMulai).join(' · ') || 'Jadwal belum diatur'}</span></div></div>`; })()}
+        <div class="li"><div class="avatar" style="background:var(--blue-50)">📄</div><div class="meta"><b>${laps[0] ? 'Laporan ' + fmtPeriod(laps[0].periode) : 'Laporan bulanan belum ada'}</b><span class="small muted">${laps[0] ? 'Klik untuk melihat & cetak' : 'Dikirim admin tiap akhir bulan'}</span></div>${laps[0] ? `<button class="btn sm ghost" onclick="ortuLap('${laps[0].id}')">Lihat</button>` : ''}</div>
+        <div class="li"><div class="avatar" style="background:${unpaid.length ? 'var(--red-50)' : 'var(--green-50)'}">💳</div><div class="meta"><b style="color:${unpaid.length ? 'var(--red)' : 'inherit'}">${unpaid.length ? `SPP belum dibayar (${unpaid.length} bln)` : 'SPP lunas'}</b><span class="small muted">${unpaid.length ? rp(unpaid.length * sppNominal(s, st)) : fmtPeriod(p)}</span></div><button class="btn sm ghost" onclick="oTab('spp')">Buka</button></div>
+      </div>
     </div>
     <div class="grid g2">
-      <div class="card"><div class="card-head"><h3>Perkembangan harian</h3><div class="spacer"></div>${harian.length > 3 ? `<button class="btn sm ghost" onclick="S.tab.ortu='harian';renderOrtu()">Semua</button>` : ''}</div>${harian.slice(0, 3).map(harianItem).join('') || '<div class="empty">Belum ada catatan dari guru</div>'}</div>
+      <div class="card"><div class="card-head"><h3>Perkembangan harian</h3><div class="spacer"></div>${harian.length > 3 ? `<button class="btn sm ghost" onclick="oTab('harian')">Semua</button>` : ''}</div>${harian.slice(0, 3).map(harianItem).join('') || '<div class="empty">Belum ada catatan dari guru</div>'}</div>
       <div class="card"><h3>Jadwal les</h3>${S.me.Jadwal.map(j => `<div class="li"><div class="avatar" style="background:var(--green-50)">${esc(j.hari.slice(0, 2))}</div><div class="meta"><b>${esc(j.hari)}, ${esc(j.jamMulai)}–${esc(j.jamSelesai)}</b><span class="small muted">${esc(j.tipe)} · ${esc(j.guruNama)}</span></div></div>`).join('') || '<div class="empty">Belum ada jadwal</div>'}
         ${laps[0] ? `<h4 style="margin:12px 0 4px">Laporan terbaru</h4><div class="li"><div class="meta"><b>${fmtPeriod(laps[0].periode)}</b></div><button class="btn sm" onclick="ortuLap('${laps[0].id}')">Lihat</button></div>` : ''}</div>
     </div>`;
@@ -1853,12 +2024,13 @@ function renderOrtu() {
     <div class="grid g2"><div class="card"><h3>Hasil latihan</h3>${nilai.slice(0, 20).map(n => `<div class="li"><div class="avatar" style="background:${lvOf(n.level).bg}">L${esc(n.level)}</div><div class="meta"><b>Skor ${esc(n.skor)} (${esc(n.benar)}/${esc(n.total)})</b><span class="small muted">${fmtDate(n.tanggal)} · ${Math.floor(n.durasi / 60)}m ${n.durasi % 60}d</span></div><span>${'⭐'.repeat(+n.bintang) || '—'}</span></div>`).join('') || '<div class="empty">Belum ada latihan</div>'}</div>
       <div class="card"><h3>Riwayat bintang</h3>${bin.slice(0, 20).map(b => `<div class="li"><div class="meta"><b>${esc(b.keterangan)}</b><span class="small muted">${fmtDate(b.tanggal)}</span></div><b class="num">${+b.jumlah > 0 ? '+' : ''}${esc(b.jumlah)}</b></div>`).join('') || '<div class="empty">Belum ada</div>'}</div></div>`;
   }
-  $('#app').innerHTML = kidTop('Portal Orang Tua') + `<div class="kid-wrap">
-    <div class="hero"><div class="avatar" style="width:64px;height:64px;font-size:24px;position:relative;z-index:1">${initials(s.nama)}</div><div style="position:relative;z-index:1;min-width:0"><h2>${esc(s.nama)}</h2><p>${esc(s.id)} · ${esc(L.judul)} · ${stBadge(s.status)}</p></div></div>
-    <div class="row"><div class="tabs">${[['ringkas', 'Ringkasan'], ['latihan', 'Latihan Soal'], ['harian', 'Perkembangan'], ['absen', 'Kehadiran'], ['spp', `SPP${unpaid.length ? ' 🔴' : ''}`], ['lap', 'Laporan']].map(([k, l]) => `<button class="${t === k ? 'on' : ''}" onclick="S.tab.ortu='${k}';renderOrtu()">${l}</button>`).join('')}</div></div>
-    ${body}
-  </div>`;
+  const O_NAV = [['ringkas', 'Dashboard', 'grid'], ['latihan', 'Latihan Soal', 'calc'], ['harian', 'Perkembangan', 'note'], ['absen', 'Kehadiran', 'check'], ['spp', 'Pembayaran SPP', 'wallet', unpaid.length || ''], ['lap', 'Laporan', 'report']];
+  setRoleTheme('ortu');
+  const head = `<div class="card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:14px 18px"><div class="avatar" style="width:52px;height:52px;font-size:20px">${initials(s.nama)}</div><div style="flex:1;min-width:0"><b style="font-family:var(--font-h);font-size:18px">${esc(s.nama)}</b><div class="small muted">${esc(s.id)} · ${esc(L.judul)} · ${stBadge(s.status)}</div></div><span class="star-pill" style="font-size:15px;box-shadow:none">⭐ ${stars}</span></div>`;
+  $('#app').innerHTML = shellHtml({ nav: O_NAV, cur: t, goFn: 'oTab', roleName: 'Orang Tua', title: (O_NAV.find(n => n[0] === t) || O_NAV[0])[1], name: s.ortu || s.nama, onRefresh: 'oReload()', body: (t === 'ringkas' ? '' : head) + body });
 }
+function oTab(k) { S.tab.ortu = k; renderOrtu(); window.scrollTo(0, 0); }
+async function oReload() { try { const m = await call('me'); S.me = m.data; renderOrtu(); toast('Data terbaru dimuat'); } catch (e) { toast(e.message, true); } }
 function ortuWaBayar(per) {
   const s = S.me.siswa;
   openWa(S.settings.noWa, `Assalamu'alaikum admin, saya orang tua ${s.nama} (${s.id}) ingin konfirmasi pembayaran SPP${per ? ' ' + fmtPeriod(per) : ''}. Berikut bukti transfernya:`);
